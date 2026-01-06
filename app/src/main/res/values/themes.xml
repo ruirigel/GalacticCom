@@ -1,0 +1,178 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Tema Principal "Futurista Neon" -->
+    <style name="Theme.GalacticCom" parent="Theme.MaterialComponents.NoActionBar">
+        <!-- Cores Primárias -->
+        <item name="colorPrimary">@color/neon_cyan</item>
+        <item name="colorOnPrimary">@color/dark_background</item>
+        <item name="colorSecondary">@color/neon_cyan</item>
+        <item name="colorOnSecondary">@color/dark_background</item>
+
+        <!-- Cores de Fundo e Superfície -->
+        <item name="android:windowBackground">@color/dark_background</item>
+        <item name="colorSurface">@color/dark_surface</item>
+        <item name="colorOnSurface">@color/white</item>
+
+        <!-- Edge-to-edge é tratado via código (enableEdgeToEdge) -->
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Fonte Principal -->
+        <item name="android:fontFamily">@font/orbitron</item>
+
+        <!-- Cores de Texto -->
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorHint">@color/neon_cyan</item>
+
+        <!-- Estilos dos Componentes -->
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+        <item name="materialButtonStyle">@style/Widget.App.Button</item>
+        <item name="editTextStyle">@style/Widget.App.EditText</item>
+        <item name="materialAlertDialogTheme">@style/AppTheme.AlertDialogTheme</item>
+        <item name="dialogTheme">@style/AppTheme.TransparentDialog</item>
+        
+        <!-- Estilo da ActionMode -->
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeStyle">@style/Widget.App.ActionMode</item>
+        <item name="actionModeCloseDrawable">@drawable/ic_arrow_back</item>
+    </style>
+
+    <!-- Tema do Ecrã de Boas-vindas -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/dark_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.GalacticCom</item>
+    </style>
+
+    <!-- Estilo para a ActionMode (Fundo e Tema) -->
+    <style name="Widget.App.ActionMode" parent="Widget.MaterialComponents.ActionMode">
+        <item name="background">@color/dark_background</item>
+        <item name="android:theme">@style/AppTheme.ActionModeTheme</item>
+    </style>
+
+    <!-- Tema para a ActionMode (Cor do Conteúdo) -->
+    <style name="AppTheme.ActionModeTheme" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="colorControlNormal">@color/neon_cyan</item>
+        <item name="android:textColorPrimary">@color/neon_cyan</item>
+    </style>
+
+    <!-- Estilo para a Toolbar -->
+    <style name="Widget.App.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
+        <item name="android:background">@color/dark_background</item>
+    </style>
+
+    <!-- "Mini-tema" para a Toolbar (ThemeOverlay) -->
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="colorControlNormal">@color/neon_cyan</item>
+        <item name="android:textColorPrimary">@color/neon_cyan</item>
+    </style>
+
+    <!-- Estilos dos Widgets -->
+    <style name="Widget.App.Button" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:background">@drawable/btn_neon_background</item>
+        <item name="android:textColor">@color/neon_cyan</item>
+    </style>
+
+    <style name="Widget.App.Button.Destructive" parent="Widget.App.Button">
+        <item name="android:textColor">@color/neon_cyan</item>
+    </style>
+
+    <style name="Widget.App.Button.View" parent="Widget.App.Button">
+        <item name="android:textColor">@color/neon_cyan</item>
+    </style>
+
+    <!-- Estilo para EditText -->
+    <style name="Widget.App.EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Estilo para AlertDialog -->
+    <style name="AppTheme.AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="android:backgroundTint">@color/dark_background</item>
+        <item name="shapeAppearance">@style/AppTheme.AlertDialog.Shape</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/AppTheme.AlertDialog.BodyText</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/AppTheme.AlertDialog.TitleText</item>
+        <item name="buttonBarPositiveButtonStyle">@style/AppTheme.AlertDialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AppTheme.AlertDialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/AppTheme.AlertDialog.Button</item>
+    </style>
+
+    <style name="AppTheme.AlertDialog.Shape" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="strokeColor">@color/neon_cyan</item>
+    </style>
+
+    <style name="AppTheme.AlertDialog.TitleText" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/neon_cyan</item>
+    </style>
+
+    <style name="AppTheme.AlertDialog.BodyText" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="AppTheme.AlertDialog.Button" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/neon_cyan</item>
+    </style>
+
+    <style name="AppTheme.TransparentDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+    </style>
+    
+    <!-- Estilos para a Tela de Definições -->
+    <style name="Settings.Title" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/neon_cyan</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:layout_marginBottom">24dp</item>
+    </style>
+
+    <style name="Settings.SectionHeader" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/neon_cyan</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <style name="Settings.SectionContainer" parent="Widget.MaterialComponents.CardView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+
+    <style name="Settings.ItemLabel" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/neon_cyan</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_centerVertical">true</item>
+    </style>
+
+    <style name="Settings.ItemData" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_centerVertical">true</item>
+    </style>
+
+    <style name="Settings.EditButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:src">@drawable/ic_edit</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:layout_alignParentEnd">true</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:tint">@color/neon_cyan</item>
+    </style>
+
+    <style name="Dialog.Title" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/neon_cyan</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+</resources>

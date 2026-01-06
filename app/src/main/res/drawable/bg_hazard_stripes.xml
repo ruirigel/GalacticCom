@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/neon_cyan">
+    
+    <!-- Content -->
+    <item>
+        <layer-list>
+            <!-- 1. Background Shape (Black) -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@android:color/black"/>
+                </shape>
+            </item>
+
+            <!-- 2. The Stripes Vector - Wider Bands -->
+            <item>
+                 <vector
+                    android:width="400dp"
+                    android:height="50dp"
+                    android:viewportWidth="400"
+                    android:viewportHeight="50">
+                    
+                    <!-- Neon Cyan Stripes - Consistent 45 Degrees -->
+                    <!-- Width: 40 units, Gap: 40 units -->
+                    <path
+                        android:fillColor="@color/neon_cyan"
+                        android:fillAlpha="1.0"
+                        android:pathData="
+                        M0,0 L40,0 L0,40 Z
+                        M80,0 L120,0 L70,50 L30,50 Z
+                        M160,0 L200,0 L150,50 L110,50 Z
+                        M240,0 L280,0 L230,50 L190,50 Z
+                        M320,0 L360,0 L310,50 L270,50 Z
+                        M400,0 L440,0 L390,50 L350,50 Z
+                        "/>
+                </vector>
+            </item>
+            
+            <!-- 3. Border Overlay (Optional, but nice for definition) -->
+            <item>
+                <shape android:shape="rectangle">
+                    <stroke android:width="2dp" android:color="@color/neon_cyan"/>
+                    <solid android:color="@android:color/transparent"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>

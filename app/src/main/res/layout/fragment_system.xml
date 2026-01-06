@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background">
+
+    <!-- Starry Sky Background -->
+    <com.rmrbranco.galacticcom.StarrySkyView
+        android:id="@+id/starry_sky_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Título Principal -->
+    <TextView
+        android:id="@+id/system_title"
+        style="@style/Settings.Title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="@string/system_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:id="@+id/system_scroll_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/system_title">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <!-- Secção: Sistema Planetário -->
+            <TextView
+                style="@style/Settings.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/planetary_system" />
+
+            <RelativeLayout
+                style="@style/Settings.SectionContainer"
+                android:background="@drawable/item_neon_background">
+
+                <!-- Images from Travel Fragment (Top Right) -->
+                <ImageView
+                    android:id="@+id/iv_system_planet"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentTop="true"
+                    android:src="@drawable/planet"
+                    android:alpha="0.8"/>
+
+                <ImageView
+                    android:id="@+id/iv_system_moon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_toStartOf="@id/iv_system_planet"
+                    android:layout_alignTop="@id/iv_system_planet"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="-10dp"
+                    android:src="@drawable/moon"
+                    android:alpha="0.8"/>
+
+                <!-- Data Rows Container -->
+                <LinearLayout
+                    android:id="@+id/ll_system_data_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="8dp">
+
+                    <!-- Galaxy Info -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:id="@+id/tv_galaxy_label"
+                            style="@style/Settings.ItemLabel"
+                            android:text="@string/galaxy_label" />
+                        <TextView
+                            android:id="@+id/tv_system_galaxy_data"
+                            style="@style/Settings.ItemData"
+                            android:layout_toEndOf="@id/tv_galaxy_label"
+                            android:text="@string/settings_data_placeholder" />
+                    </RelativeLayout>
+
+                    <!-- Star Info -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp">
+                        <TextView
+                            android:id="@+id/tv_star_label"
+                            style="@style/Settings.ItemLabel"
+                            android:text="@string/star_label" />
+                        <TextView
+                            android:id="@+id/tv_system_star_data"
+                            style="@style/Settings.ItemData"
+                            android:layout_toEndOf="@id/tv_star_label"
+                            android:text="@string/settings_data_placeholder" />
+                    </RelativeLayout>
+
+                    <!-- Planet Info -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp">
+                        <TextView
+                            android:id="@+id/tv_planet_label"
+                            style="@style/Settings.ItemLabel"
+                            android:text="@string/planet_label" />
+                        <TextView
+                            android:id="@+id/tv_system_planet_data"
+                            style="@style/Settings.ItemData"
+                            android:layout_toEndOf="@id/tv_planet_label"
+                            android:text="@string/settings_data_placeholder" />
+                    </RelativeLayout>
+
+                    <!-- Resource Info (Novo) -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp">
+                        <TextView
+                            android:id="@+id/tv_resource_label"
+                            style="@style/Settings.ItemLabel"
+                            android:text="Resource:" />
+                        <TextView
+                            android:id="@+id/tv_system_resource_name"
+                            style="@style/Settings.ItemData"
+                            android:layout_toEndOf="@id/tv_resource_label"
+                            android:text="Scanning..."/>
+                    </RelativeLayout>
+
+                    <!-- Reserves Info (Novo) -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp">
+                        <TextView
+                            android:id="@+id/tv_reserves_label"
+                            style="@style/Settings.ItemLabel"
+                            android:text="Reserves:" />
+                        <TextView
+                            android:id="@+id/tv_system_reserves_data"
+                            style="@style/Settings.ItemData"
+                            android:layout_toEndOf="@id/tv_reserves_label"
+                            android:text="Calculating..." />
+                    </RelativeLayout>
+
+                    <!-- Orbit Info -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp">
+                        <TextView
+                            android:id="@+id/tv_orbit_label"
+                            style="@style/Settings.ItemLabel"
+                            android:text="@string/settings_orbit_label" />
+                        <TextView
+                            android:id="@+id/tv_system_orbit_data"
+                            style="@style/Settings.ItemData"
+                            android:layout_toEndOf="@id/tv_orbit_label"
+                            android:text="@string/settings_data_placeholder" />
+                    </RelativeLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_find_new_system"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/ll_system_data_container"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/find_new_system_button" />
+            </RelativeLayout>
+
+            <!-- Secção: Mineração Passiva -->
+            <TextView
+                style="@style/Settings.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Mining Operations" />
+
+            <LinearLayout
+                style="@style/Settings.SectionContainer"
+                android:background="@drawable/item_neon_background"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/tv_credits"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="0 Credits"
+                        android:textColor="@color/neon_cyan"
+                        android:textStyle="bold"
+                        android:textSize="16sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_toStartOf="@id/tv_credits"
+                        android:text="Passive Mining"
+                        android:textColor="@color/neon_cyan"
+                        android:textSize="18sp"
+                        android:textStyle="bold"/>
+                </RelativeLayout>
+
+                <!-- Stress Level UI -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="12dp">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Drone Stress:"
+                        android:textColor="@color/neon_cyan"
+                        android:layout_marginEnd="8dp"/>
+                        
+                    <ProgressBar
+                        android:id="@+id/pb_mining_stress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="8dp"
+                        android:layout_weight="1"
+                        android:progressDrawable="@drawable/bg_progress_bar_gradient"
+                        android:max="100"
+                        android:progress="0"/>
+                        
+                    <TextView
+                        android:id="@+id/tv_stress_percentage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0%"
+                        android:textColor="@color/neon_cyan"
+                        android:layout_marginStart="8dp"
+                        android:minWidth="35dp"
+                        android:gravity="end"/>
+                </LinearLayout>
+
+                <!-- Modified Mining Status with Image on Right -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_mining_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="Drones are extracting resources..."
+                        android:textColor="@color/neon_cyan"/>
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/materials"
+                        app:tint="@color/neon_cyan"
+                        android:contentDescription="Materials icon"/>
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/tv_accumulated_resources"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Accumulated: 0 Ore"
+                    android:textColor="@color/neon_cyan"/>
+
+                <!-- Custom Collect Button Container (CardView for Clipping) -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btn_collect_resources_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="4dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@android:color/transparent">
+                    
+                    <!-- The Background with Stripes (Not clickable, just visual) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_hazard_stripes"
+                        android:padding="1dp">
+                        
+                        <!-- Inner TextView -->
+                        <TextView
+                            android:id="@+id/tv_collect_resources_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:padding="16dp"
+                            android:shadowColor="@android:color/black"
+                            android:shadowDx="2"
+                            android:shadowDy="2"
+                            android:shadowRadius="2"
+                            android:text="Collect Cargo"
+                            android:textAllCaps="true"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Modified Inventory Header with Image on Right -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="Ship Inventory"
+                        android:textColor="@color/neon_cyan"/>
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/stockrotation"
+                        app:tint="@color/neon_cyan"
+                        android:contentDescription="Inventory icon"/>
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/tv_resources_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="Empty"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

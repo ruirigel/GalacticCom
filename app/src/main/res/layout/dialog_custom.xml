@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/dialog_neon_background"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Galaxy Name"
+        android:textColor="@color/neon_cyan"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Galaxy Stats -->
+    <LinearLayout
+        android:id="@+id/galaxy_stats_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Inhabitants: 0"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_message_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Messages: 0"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_morphology"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Morphology: "
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_age"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Age: "
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_dimension"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Dimension: "
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_composition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Composition: "
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_habitable_planets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Habitable Planets: "
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/dialog_galaxy_item_non_habitable_planets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Non-Habitable Planets: "
+            android:textColor="@color/white" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/dialog_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        tools:text="Confirm Travel"
+        android:textColor="@color/neon_cyan"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialog_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        tools:text="This is the dialog message."
+        android:textColor="@color/white"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:id="@+id/dialog_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/dialog_negative_button"
+            style="@style/Widget.App.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/cancel_button_text" />
+
+        <Button
+            android:id="@+id/dialog_positive_button"
+            style="@style/Widget.App.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ok_button_text" />
+    </LinearLayout>
+
+</LinearLayout>

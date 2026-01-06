@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/dialog_neon_background"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/dialog_catastrophe_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/material_red_500"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"
+        tools:text="AVISO: SINAL INSTÁVEL DETETADO"
+        tools:visibility="visible"/>
+
+    <!-- Message Content -->
+    <TextView
+        android:id="@+id/dialog_message_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/dialog_message_sender"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/dialog_message_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:textSize="12sp"
+        android:textColor="@color/neon_cyan" />
+
+    <!-- Countdown Timer -->
+    <TextView
+        android:id="@+id/dialog_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="0dp"
+        android:fontFamily="@font/orbitron"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="Arriving in: 23:59:59"
+        tools:visibility="visible" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_view"
+            style="@style/Widget.App.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/view_button_text" />
+
+        <Button
+            android:id="@+id/btn_intercept_reply"
+            style="@style/Widget.App.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/intercept_button_text" />
+
+        <Button
+            android:id="@+id/btn_delete"
+            style="@style/Widget.App.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/delete_button_text" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_close"
+        style="@style/Widget.App.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="0dp"
+        android:text="@string/close" />
+
+</LinearLayout>

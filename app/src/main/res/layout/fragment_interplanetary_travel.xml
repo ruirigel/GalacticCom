@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/space_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_background">
+
+    <TextView
+        android:id="@+id/countdown_timer_textview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:padding="16dp"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="22sp"
+        android:text="Traveling..." />
+
+    <ImageView
+        android:id="@+id/planet"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:src="@drawable/planet" />
+
+    <ImageView
+        android:id="@+id/moon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:translationX="150dp"
+        android:translationY="-150dp"
+        android:src="@drawable/moon" />
+
+</FrameLayout>

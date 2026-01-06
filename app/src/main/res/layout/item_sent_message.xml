@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="8dp"
+    android:background="@drawable/item_neon_background"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/tv_catastrophe_warning"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/material_red_500"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="@string/catastrophe_warning"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/tv_message_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/message_label"
+        android:textColor="@color/neon_cyan"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_sent_message_content"
+        app:layout_constraintBottom_toBottomOf="@id/tv_sent_message_content" />
+
+    <TextView
+        android:id="@+id/tv_sent_message_content"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@id/tv_message_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_catastrophe_warning"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="@string/sent_message_content_placeholder" />
+
+    <TextView
+        android:id="@+id/tv_sent_to_galaxy"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/neon_cyan"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/tv_sent_message_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tv_sent_timestamp"
+        android:layout_marginEnd="8dp"
+        tools:text="@string/sent_to_galaxy_placeholder" />
+
+    <TextView
+        android:id="@+id/tv_sent_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/tv_sent_to_galaxy"
+        tools:text="@string/conversation_timestamp_placeholder" />
+
+    <TextView
+        android:id="@+id/tv_arrival_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:textSize="16sp"
+        android:textColor="@color/neon_cyan"
+        app:layout_constraintTop_toBottomOf="@id/tv_sent_to_galaxy"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="@string/arriving_in_placeholder" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tv_arrival_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/btn_view_sent_message"
+            style="@style/Widget.App.Button.View"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/view_message_button"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_delete_sent_message"
+            style="@style/Widget.App.Button.Destructive"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/delete_button_text"
+            android:layout_marginStart="4dp"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

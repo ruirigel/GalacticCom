@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="neon_cyan">#FFFFFF</color>
+    <color name="dark_cyan">#E0E0E0</color> <!-- Light gray for the planet gradient in dark mode -->
+    <color name="deep_space_blue">#000033</color>
+    <!-- No modo escuro, a cor dedicada para as estrelas passa a ser branca -->
+    <color name="star_color">@color/white</color>
+    <color name="ic_launcher_logotipo_color">#FFFFFF</color>
+    <color name="fab_scroll_background">@color/white</color>
+    <color name="fab_scroll_icon_tint">#000000</color>
+</resources>

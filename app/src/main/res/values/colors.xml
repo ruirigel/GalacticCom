@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="neon_cyan">#00FFFF</color>
+    <color name="dark_cyan">#008B8B</color>
+    <color name="dark_background">#000000</color>
+    <color name="dark_surface">#1A1A1A</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="dark_blue">#00008B</color>
+    <color name="darker_blue">#00004B</color>
+    <color name="deep_space_blue">#000033</color>
+    <color name="material_red_500">#F44336</color>
+    <color name="darker_gray">#A9A9A9</color>
+
+    <color name="neon_gold">#FFD700</color>
+
+    <!-- Cor dedicada APENAS para as estrelas -->
+    <color name="star_color">@color/neon_cyan</color>
+    <color name="ic_launcher_logotipo_color">@color/neon_cyan</color>
+    <color name="fab_scroll_background">@color/neon_cyan</color>
+    <color name="fab_scroll_icon_tint">#000000</color>
+</resources>

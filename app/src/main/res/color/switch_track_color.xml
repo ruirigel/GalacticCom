@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="#8000FFFF" /> <!-- neon_cyan com 50% de transparência -->
+    <item android:color="#80AAAAAA" /> <!-- darker_gray com 50% de transparência -->
+</selector>

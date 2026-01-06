@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:background="@drawable/item_neon_background"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:id="@+id/info_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/galaxy_name_placeholder"
+            android:textColor="@color/neon_cyan"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Space
+            android:id="@+id/spacer"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"/>
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/inhabitants_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_message_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/messages_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_morphology"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/morphology_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_age"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/age_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_dimension"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/dimension_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_composition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/composition_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_habitable_planets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/habitable_planets_label"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_galaxy_item_non_habitable_planets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/non_habitable_planets_label"
+            android:textColor="@color/white" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_travel_to_galaxy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/travel_to_this_galaxy"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/info_container" />
+
+    <ImageView
+        android:id="@+id/iv_galaxy_logo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:contentDescription="@string/galaxy_logo_description"
+        android:src="@drawable/logotipo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

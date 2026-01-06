@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.rmrbranco.galacticcom.StarrySkyView
+        android:id="@+id/starry_sky_preview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_galaxy_preview_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:textColor="@color/neon_cyan"
+        android:textSize="22sp"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Broadcast in Andromeda"
+        android:shadowColor="#000000"
+        android:shadowDx="10.0"
+        android:shadowDy="10.0"
+        android:shadowRadius="20.0" />
+
+    <ImageView
+        android:id="@+id/galaxy_logo_preview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/logotipo"
+        android:alpha="0.0"
+        app:tint="@color/neon_cyan"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Anchors -->
+    <View android:id="@+id/anchor1" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.60" app:layout_constraintVertical_bias="0.45" />
+    <View android:id="@+id/anchor2" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.68" app:layout_constraintVertical_bias="0.38" />
+    <View android:id="@+id/anchor3" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.76" app:layout_constraintVertical_bias="0.30" />
+    <View android:id="@+id/anchor4" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.92" app:layout_constraintVertical_bias="0.25" />
+    <View android:id="@+id/anchor5" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.97" app:layout_constraintVertical_bias="0.35" />
+    <View android:id="@+id/anchor6" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.92" app:layout_constraintVertical_bias="0.50" />
+    <View android:id="@+id/anchor13" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.85" app:layout_constraintVertical_bias="0.65" />
+
+    <View android:id="@+id/anchor7" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.40" app:layout_constraintVertical_bias="0.55" />
+    <View android:id="@+id/anchor8" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.32" app:layout_constraintVertical_bias="0.62" />
+    <View android:id="@+id/anchor9" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.24" app:layout_constraintVertical_bias="0.70" />
+    <View android:id="@+id/anchor10" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.16" app:layout_constraintVertical_bias="0.75" />
+    <View android:id="@+id/anchor11" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.05" app:layout_constraintVertical_bias="0.65" />
+    <View android:id="@+id/anchor12" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.02" app:layout_constraintVertical_bias="0.50" />
+    <View android:id="@+id/anchor14" android:layout_width="1dp" android:layout_height="1dp" app:layout_constraintTop_toTopOf="@id/galaxy_logo_preview" app:layout_constraintBottom_toBottomOf="@id/galaxy_logo_preview" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.15" app:layout_constraintVertical_bias="0.35" />
+
+    <!-- Anchor 1 -> Balloon 1 -->
+    <LinearLayout android:id="@+id/balloon1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor1" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.53" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon1_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon1_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 2 -> Balloon 7 (FIXED: Name Up) -->
+    <LinearLayout android:id="@+id/balloon7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor2" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.68" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon7_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon7_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 3 -> Balloon 13 (FIXED: Name Up) -->
+    <LinearLayout android:id="@+id/balloon13" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor3" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.87" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon13_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon13_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 4 -> Balloon 5 (FIXED: Name Up) -->
+    <LinearLayout android:id="@+id/balloon5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor4" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.94" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon5_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon5_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 5 -> Balloon 11 (FIXED: Name Up) -->
+    <LinearLayout android:id="@+id/balloon11" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor5" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="1.03" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon11_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon11_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 6 -> Balloon 3 -->
+    <LinearLayout android:id="@+id/balloon3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/anchor6" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.99" tools:visibility="visible">
+        <ImageView android:id="@+id/balloon3_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_bullet" />
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon3_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Anchor 13 -> Balloon 4 -->
+    <LinearLayout android:id="@+id/balloon4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/anchor13" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.85" tools:visibility="visible">
+        <ImageView android:id="@+id/balloon4_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_bullet" />
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon4_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Anchor 7 -> Balloon 9 (FIXED: Name Down) -->
+    <LinearLayout android:id="@+id/balloon9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/anchor7" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.40" tools:visibility="visible">
+        <ImageView android:id="@+id/balloon9_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_bullet" />
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon9_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Anchor 8 -> Balloon 2 (FIXED: Text above icon) -->
+    <LinearLayout android:id="@+id/balloon2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor8" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.32" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon2_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon2_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 9 -> Balloon 8 -->
+    <LinearLayout android:id="@+id/balloon8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/anchor9" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.24" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon8_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon8_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 10 -> Balloon 14 (FIXED: Name Down) -->
+    <LinearLayout android:id="@+id/balloon14" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/anchor10" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.16" tools:visibility="visible">
+        <ImageView android:id="@+id/balloon14_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_bullet" />
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon14_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Anchor 11 -> Balloon 6 (FIXED: Name Down) -->
+    <LinearLayout android:id="@+id/balloon6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/anchor11" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.02" tools:visibility="visible">
+        <ImageView android:id="@+id/balloon6_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginEnd="4dp" android:src="@drawable/ic_bullet" />
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon6_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Anchor 12 -> Balloon 12 (FIXED: Text above icon) -->
+    <LinearLayout android:id="@+id/balloon12" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor12" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.00" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon12_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon12_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+    <!-- Anchor 14 -> Balloon 10 (FIXED: Name Up) -->
+    <LinearLayout android:id="@+id/balloon10" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:rotation="90" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/anchor14" app:layout_constraintStart_toStartOf="@id/galaxy_logo_preview" app:layout_constraintEnd_toEndOf="@id/galaxy_logo_preview" app:layout_constraintHorizontal_bias="0.15" tools:visibility="visible">
+        <com.rmrbranco.galacticcom.StrokeTextView android:id="@+id/balloon10_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="4dp" android:text="name" android:textColor="@color/neon_cyan" android:textSize="14sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/balloon10_icon" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@drawable/ic_bullet" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@id/homeFragment"
+        android:icon="@drawable/ic_broadcast"
+        android:title="@string/broadcast_title" />
+
+    <item
+        android:id="@id/galaxyDirectoryFragment"
+        android:icon="@drawable/bigbang"
+        android:title="@string/cosmos_title" />
+
+    <item
+        android:id="@id/composeFragment"
+        android:icon="@drawable/ic_transmit"
+        android:title="@string/transmit_title" />
+
+    <item
+        android:id="@id/inboxFragment"
+        android:icon="@drawable/ic_comms"
+        android:title="@string/comms_title" />
+
+    <item
+        android:id="@id/systemFragment"
+        android:icon="@drawable/ic_system"
+        android:title="@string/system_title" />
+
+</menu>
