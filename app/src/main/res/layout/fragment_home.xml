@@ -85,19 +85,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Botão Flutuante para Alternar (Esquerda) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_toggle_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_list"
-        app:maxImageSize="36dp"
-        app:backgroundTint="@color/neon_cyan"
-        app:tint="@color/dark_surface"
-        android:contentDescription="@string/toggle_view_description" />
-
     <!-- NOVO Botão Flutuante para a Loja Pirata (Direita) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_pirate_store"

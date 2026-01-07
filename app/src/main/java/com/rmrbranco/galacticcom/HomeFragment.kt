@@ -61,7 +61,6 @@ class HomeFragment : Fragment() {
     private lateinit var travelStatusTextView: TextView
     private lateinit var galaxyPreviewView: View
     private lateinit var messagesView: View
-    private lateinit var fabToggleView: FloatingActionButton
     private lateinit var fabPirateStore: FloatingActionButton
     private lateinit var balloonViews: List<View> // Changed from BalloonTextView
     private lateinit var galaxyLogo: ImageView
@@ -147,7 +146,6 @@ class HomeFragment : Fragment() {
         travelStatusTextView = view.findViewById(R.id.tv_travel_status)
         galaxyPreviewView = view.findViewById(R.id.galaxy_preview_view)
         messagesView = view.findViewById(R.id.messages_view)
-        fabToggleView = view.findViewById(R.id.fab_toggle_view)
         fabPirateStore = view.findViewById(R.id.fab_pirate_store)
         galaxyLogo = view.findViewById(R.id.galaxy_logo_preview)
         edgeLightingView = view.findViewById(R.id.edge_lighting_view)
@@ -166,37 +164,32 @@ class HomeFragment : Fragment() {
             view?.post { playGalaxyArrivalAnimation() }
             hasPlayedInitialAnimation = true
         }
+        updateViewVisibility()
+    }
+
+    private fun updateViewVisibility() {
         if (isMessagesViewVisible) {
             galaxyPreviewView.isGone = true
             messagesView.isVisible = true
-            fabToggleView.setImageResource(R.drawable.logotipo)
+            balloonViews.forEach { 
+                it.isGone = true
+                stopFloatingAnimation(it)
+            }
+            displayedBalloons.clear()
         } else {
             galaxyPreviewView.isVisible = true
             messagesView.isGone = true
-            fabToggleView.setImageResource(R.drawable.ic_list)
+            messageList.forEach { showBalloonNotification(it, withAnimation = false) }
+            listenForMerchantStatus() // Re-check merchant status when switching to visual view
         }
     }
 
+    fun toggleViewMode() {
+        isMessagesViewVisible = !isMessagesViewVisible
+        updateViewVisibility()
+    }
+
     private fun setupListeners() {
-        fabToggleView.setOnClickListener {
-            isMessagesViewVisible = !isMessagesViewVisible
-            if (isMessagesViewVisible) {
-                galaxyPreviewView.isGone = true
-                messagesView.isVisible = true
-                fabToggleView.setImageResource(R.drawable.logotipo)
-                balloonViews.forEach { 
-                    it.isGone = true
-                    stopFloatingAnimation(it)
-                }
-                displayedBalloons.clear()
-            } else {
-                galaxyPreviewView.isVisible = true
-                messagesView.isGone = true
-                fabToggleView.setImageResource(R.drawable.ic_list)
-                messageList.forEach { showBalloonNotification(it, withAnimation = false) }
-                listenForMerchantStatus() // Re-check merchant status when switching to visual view
-            }
-        }
         fabPirateStore.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_pirate_store)
         }

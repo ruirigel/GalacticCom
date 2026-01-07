@@ -39,16 +39,4 @@
 
     </FrameLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_toggle_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:src="@drawable/logotipo"
-        app:maxImageSize="36dp"
-        app:backgroundTint="@color/neon_cyan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:tint="@color/dark_surface" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

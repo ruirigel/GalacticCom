@@ -40,7 +40,6 @@ class GalaxyDirectoryFragment : Fragment() {
     private lateinit var galaxiesRecyclerView: RecyclerView
     private lateinit var galaxyMapView: GalaxyMapView
     private lateinit var titleTextView: TextView
-    private lateinit var fabToggleView: FloatingActionButton
     private lateinit var galaxyAdapter: GalaxyAdapter
 
     private var isMapView = true
@@ -78,15 +77,17 @@ class GalaxyDirectoryFragment : Fragment() {
         galaxiesRecyclerView = view.findViewById(R.id.rv_galaxies)
         galaxyMapView = view.findViewById(R.id.galaxy_map_view)
         titleTextView = view.findViewById(R.id.cosmos_title)
-        fabToggleView = view.findViewById(R.id.fab_toggle_view)
 
         setupRecyclerView()
         setupMapView()
-        setupToggle()
-
+        
         loadGalaxyData()
         listenForUserStatus()
-        alignFabToBottomNav()
+    }
+
+    fun toggleViewMode() {
+        isMapView = !isMapView
+        toggleViews()
     }
     
     private fun checkIntergalacticTravelLimitAndProceed(galaxy: GalaxyInfo) {
@@ -202,9 +203,7 @@ class GalaxyDirectoryFragment : Fragment() {
     }
     
     // ... Other functions remain the same
-    private fun alignFabToBottomNav() { val bottomNavView = activity?.findViewById<BottomNavigationView>(R.id.bottom_nav_view); bottomNavView?.post { val directoryButton = bottomNavView.findViewById<View>(R.id.galaxyDirectoryFragment); val fab = view?.findViewById<FloatingActionButton>(R.id.fab_toggle_view); if (directoryButton != null && fab != null) { fab.post { val params = fab.layoutParams as ConstraintLayout.LayoutParams; val buttonCenterX = directoryButton.x + directoryButton.width / 2; val fabWidth = fab.width; params.marginStart = (buttonCenterX - fabWidth / 2).toInt(); params.endToEnd = ConstraintLayout.LayoutParams.UNSET; params.startToEnd = ConstraintLayout.LayoutParams.UNSET; params.endToStart = ConstraintLayout.LayoutParams.UNSET; fab.layoutParams = params } } } }
-    private fun setupToggle() { fabToggleView.setOnClickListener { isMapView = !isMapView; toggleViews() }; toggleViews() }
-    private fun toggleViews() { if (isMapView) { galaxiesRecyclerView.visibility = View.GONE; galaxyMapView.visibility = View.VISIBLE; fabToggleView.setImageResource(R.drawable.ic_list) } else { galaxiesRecyclerView.visibility = View.VISIBLE; galaxyMapView.visibility = View.GONE; fabToggleView.setImageResource(R.drawable.logotipo) } }
+    private fun toggleViews() { if (isMapView) { galaxiesRecyclerView.visibility = View.GONE; galaxyMapView.visibility = View.VISIBLE } else { galaxiesRecyclerView.visibility = View.VISIBLE; galaxyMapView.visibility = View.GONE } }
     private fun setupRecyclerView() { galaxyAdapter = GalaxyAdapter(onTravelClick = { galaxy -> checkIntergalacticTravelLimitAndProceed(galaxy) }, onItemClick = { galaxy -> showGalaxyInfoDialog(galaxy) }); galaxiesRecyclerView.layoutManager = LinearLayoutManager(context); galaxiesRecyclerView.adapter = galaxyAdapter }
     private fun setupMapView() { galaxyMapView.onGalaxyClickListener = { galaxy -> showGalaxyInfoDialog(galaxy) } }
     private fun startTitleLoadingAnimation() { titleLoadingRunnable?.let { titleLoadingHandler.removeCallbacks(it) }; titleLoadingRunnable = object : Runnable { private var dotCount = 0; override fun run() { dotCount = (dotCount + 1) % 4; val dots = when (dotCount) { 1 -> "."; 2 -> ".."; 3 -> "..."; else -> "" }; 

@@ -86,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         // Link Bottom Navigation with Controller (Always needs to be done)
         bottomNavView.setupWithNavController(navController)
         setupDestinationListener() // Setup UI visibility logic
+        setupLongPressNavigation()
 
         val user = auth.currentUser
 
@@ -128,6 +129,30 @@ class MainActivity : AppCompatActivity() {
         val glitchEnabled = sharedPreferences.getBoolean("glitch_enabled", true)
         if (glitchEnabled) {
             startGlobalGlitchLoop()
+        }
+    }
+    
+    private fun setupLongPressNavigation() {
+        bottomNavView.findViewById<View>(R.id.homeFragment)?.setOnLongClickListener {
+            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+            val currentFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull()
+            if (currentFragment is HomeFragment) {
+                currentFragment.toggleViewMode()
+                true
+            } else {
+                false
+            }
+        }
+
+        bottomNavView.findViewById<View>(R.id.galaxyDirectoryFragment)?.setOnLongClickListener {
+             val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+             val currentFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull()
+             if (currentFragment is GalaxyDirectoryFragment) {
+                 currentFragment.toggleViewMode()
+                 true
+             } else {
+                 false
+             }
         }
     }
     
