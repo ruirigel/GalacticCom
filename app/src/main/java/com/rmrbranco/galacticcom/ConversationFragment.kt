@@ -37,6 +37,7 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
+import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -1128,6 +1129,9 @@ class ConversationFragment : Fragment() {
                     voiceMessageDuration = duration
                 )
                 messagesRef?.child(messageId)?.setValue(finalMessage)
+                
+                // Badge Logic: Add Voice Seconds
+                BadgeProgressManager.addVoiceSeconds(duration / 1000)
             } else {
                 Toast.makeText(context, "Failed to upload voice message.", Toast.LENGTH_SHORT).show()
             }

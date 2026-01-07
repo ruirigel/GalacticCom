@@ -15,6 +15,7 @@ This document serves as a technical guide to the architecture, logic, and data f
 9.  [Conversation Screen (`ConversationFragment`)](#conversation-screen-conversationfragment)
 10. [Settings & Profile (`SettingsFragment` & `UserProfileDialogFragment`)](#settings--profile-settingsfragment--userprofiledialogfragment)
 11. [Push Notification Service (`MyFirebaseMessagingService` & Cloud Functions)](#push-notification-service-myfirebasemessagingservice--cloud-functions)
+12. [Badge System (`BadgeManager` & `BadgeProgressManager`)](#badge-system-badgemanager--badgeprogressmanager)
 
 ---
 
@@ -208,3 +209,19 @@ The push notification system is a collaboration between the Android client and F
         }
         ```
     *   **Client-Side Handling:** The `MyFirebaseMessagingService` receives this payload, identifies the `pirate_arrival` type, and constructs a randomized, captivating notification message for the user, ensuring they are alerted to the event even if the app is closed.
+
+---
+
+### **Badge System (`BadgeManager` & `BadgeProgressManager`)**
+
+A long-term retention system tracking user achievements over a 10-year period.
+
+*   **Architecture:**
+    *   **`ActionLogs` (Model):** Tracks cumulative statistics like `totalYearsActive`, `miningTotalAccumulated`, `visitedGalaxies`, etc.
+    *   **`Badge` (Model):** Represents the visual state of a badge (Bronze, Silver, Gold, etc.) and progress percentage.
+    *   **`BadgeManager` (Logic):** Calculates badge unlocks dynamically based on `ActionLogs`.
+    *   **`BadgeProgressManager` (Helper):** Provides static methods to easily increment stats in Firebase transactions.
+
+*   **Implementation:**
+    *   The `BadgeProgressManager` is called in key locations (mining, travel, messaging) to update the database.
+    *   The `UserProfileDialogFragment` fetches the `actionLogs`, uses `BadgeManager` to calculate the current state, and displays the badges in a `RecyclerView` using `BadgeAdapter`.

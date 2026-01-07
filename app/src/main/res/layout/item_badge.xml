@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp"
+    android:background="@drawable/dialog_neon_background"
+    android:backgroundTint="#20000000"
+    android:layout_margin="4dp">
+
+    <ImageView
+        android:id="@+id/badge_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_menu_info_details"
+        android:contentDescription="Badge Icon"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/badge_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Badge Name"
+        android:textSize="12sp"
+        android:textColor="@color/neon_cyan"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:layout_marginBottom="4dp"/>
+        
+    <ProgressBar
+        android:id="@+id/badge_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_marginTop="2dp"
+        android:progressDrawable="@drawable/bg_sent_bubble_curved"
+        android:progressTint="@color/neon_cyan"
+        android:max="100" />
+
+</LinearLayout>

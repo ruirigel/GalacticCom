@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.rmrbranco.galacticcom.R
+import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.model.MerchantItem
 import com.rmrbranco.galacticcom.ui.pirate.PirateStoreAdapter
 
@@ -126,6 +127,10 @@ class PirateBuyFragment : Fragment() {
                 "item_004" -> userRef.child("inventory/avatar_resets").setValue(ServerValue.increment(1))
                 "item_005" -> userRef.child("emblems/lone_traveler").setValue(true)
             }
+            
+            // Badge Logic: Record Harlock Purchase
+            BadgeProgressManager.recordHarlockPurchase(item.itemId)
+            
             Toast.makeText(context, "Purchase successful!", Toast.LENGTH_SHORT).show()
         }
     }

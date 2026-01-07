@@ -25,6 +25,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import com.rmrbranco.galacticcom.data.managers.AdManager
+import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
@@ -332,6 +333,8 @@ class TravelInProgressFragment : Fragment() {
         
         if (isIntergalactic) {
              updates["galaxy"] = galaxy
+             // Badge Logic: Record Galaxy Visit
+             BadgeProgressManager.recordGalaxyVisit(galaxy)
         }
         
         val newStar = CosmicNameGenerator.generateStars(galaxy).random()

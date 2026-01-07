@@ -19,6 +19,7 @@ Welcome to GalacticCom! This guide will help you get started and understand the 
 13. [How will I know when the Pirate Merchant arrives?](#how-will-i-know-when-the-pirate-merchant-arrives)
 14. [Can I change my avatar?](#can-i-change-my-avatar)
 15. [How can I change my profile or manage my account?](#how-can-i-change-my-profile-or-manage-my-account)
+16. [What are Badges and how do I earn them?](#what-are-badges-and-how-do-i-earn-them)
 
 ---
 
@@ -135,3 +136,24 @@ Yes, you can regenerate your avatar in your user profile. However, there is a mo
 ### **How can I change my profile or manage my account?**
 
 You can edit your nickname and bio in the Settings. You can also manage your account, including deleting it if you wish.
+
+---
+
+### **What are Badges and how do I earn them?**
+
+Badges are medals of honor that celebrate your journey through the cosmos. They are not just about grinding but about history, rarity, and dedication over 10 years.
+
+Here are the 10 badges you can earn:
+
+1.  **🌌 The Observer of Ages:** Maintain an active account and broadcast at least once a month for 1, 5, and 10 years.
+2.  **☄️ Halley's Comet:** Be present and active during rare astronomical events.
+3.  **📩 The Murano Glass Bottle:** Send a message that travels through 10 different galaxies before being intercepted.
+4.  **⚓ Admiral of the Ghost Fleet:** Accumulate 1,000 private conversations that were severed (deleted).
+5.  **🏴‍☠️ Star Nomad Lifetime Member:** Purchase all unique items from Captain Harlock at least 50 times each.
+6.  **🌍 Scholar of a Thousand Worlds:** Inhabit all existing galaxies in the official directory at least once.
+7.  **💎 Dark Matter Miner:** Extract a total of 1,000,000 units of rare resources.
+8.  **🎙️ Voice of the Stars:** Send a total of 520 minutes (approx. 10 hours) of voice messages.
+9.  **🛡️ Guardian of the Void:** Be the first to intercept 500 "Deep Space" messages in a galaxy.
+10. **🌟 Supernova Survivor:** Be present in a galaxy at the moment it "dies" and is reborn.
+
+You can view your badges and progress in your User Profile.

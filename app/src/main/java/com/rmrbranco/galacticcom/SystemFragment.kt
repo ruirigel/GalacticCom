@@ -20,6 +20,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.rmrbranco.galacticcom.data.managers.AdManager
+import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
 import com.rmrbranco.galacticcom.data.model.UserInventory
 import java.util.Calendar
@@ -437,6 +438,9 @@ class SystemFragment : Fragment() {
         
         userRef?.child("inventory_data")?.updateChildren(updates)?.addOnSuccessListener {
             if (amount > 0) {
+                 // Badge Logic: Add Mining Progress
+                 BadgeProgressManager.addMiningProgress(amount.toLong())
+                 
                  Toast.makeText(context, "Collected ${formatNumber(amount.toLong())} ${resourceName.replace("_", " ").capitalize()}", Toast.LENGTH_SHORT).show()
             }
             // Optimistic Update

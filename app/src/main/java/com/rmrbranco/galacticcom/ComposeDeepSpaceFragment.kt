@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
 import java.util.Calendar
 import kotlin.math.max
@@ -236,6 +237,12 @@ class ComposeDeepSpaceFragment : Fragment() {
                         "publicMessageCountToday" to (currentCount + 1)
                     )
                     logsRef.updateChildren(updates)
+                    
+                    // Badge Logic: Record Broadcast
+                    BadgeProgressManager.recordBroadcast()
+                    
+                    // Badge Logic: Record Murano Progress (Target Galaxy)
+                    BadgeProgressManager.recordMessageSentToGalaxy(targetGalaxy)
                     
                     if (useBooster) {
                         inventoryRef.setValue(boosters - 1)

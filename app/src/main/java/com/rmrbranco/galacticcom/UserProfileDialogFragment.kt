@@ -9,13 +9,22 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.rmrbranco.galacticcom.data.managers.BadgeManager
+import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
+import com.rmrbranco.galacticcom.data.model.ActionLogs
+import com.rmrbranco.galacticcom.data.model.Badge
+import com.rmrbranco.galacticcom.data.model.BadgeTier
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -26,6 +35,7 @@ class UserProfileDialogFragment : DialogFragment() {
     private var userId: String? = null
     private var currentUserId: String? = null
     private var isBlocked = false
+    private lateinit var badgeAdapter: BadgeAdapter
 
     companion object {
         private const val ARG_USER_ID = "user_id"
@@ -68,6 +78,14 @@ class UserProfileDialogFragment : DialogFragment() {
         val regenerateAvatarButton = view.findViewById<Button>(R.id.btn_regenerate_avatar)
         val blockUserButton = view.findViewById<Button>(R.id.btn_block_user)
         val reportAbuseButton = view.findViewById<Button>(R.id.btn_report_abuse)
+        val badgesRecyclerView = view.findViewById<RecyclerView>(R.id.badges_recycler_view)
+
+        // Setup RecyclerView for Badges with Click Listener
+        badgeAdapter = BadgeAdapter { badge ->
+            showBadgeDetailsDialog(badge)
+        }
+        badgesRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        badgesRecyclerView.adapter = badgeAdapter
 
         if (userId == currentUserId) {
             // Viewing own profile
@@ -87,6 +105,98 @@ class UserProfileDialogFragment : DialogFragment() {
         closeButton.setOnClickListener { dismiss() }
 
         loadUserProfile(profileImage, profileName, profileEmblem, profileBio, profileExperience, profileGalaxy, profileStar, profilePlanet, blockUserButton)
+    }
+
+    private fun showBadgeDetailsDialog(badge: Badge) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_badge_details)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val iconView = dialog.findViewById<ImageView>(R.id.dialog_badge_icon)
+        val nameView = dialog.findViewById<TextView>(R.id.dialog_badge_name)
+        val tierView = dialog.findViewById<TextView>(R.id.dialog_badge_tier)
+        val rewardView = dialog.findViewById<TextView>(R.id.dialog_badge_reward_value) // New View
+        val descriptionView = dialog.findViewById<TextView>(R.id.dialog_badge_description)
+        val progressText = dialog.findViewById<TextView>(R.id.dialog_badge_progress_text)
+        val progressBar = dialog.findViewById<ProgressBar>(R.id.dialog_badge_progress_bar)
+        val claimButton = dialog.findViewById<Button>(R.id.btn_claim_badge_reward)
+        val closeButton = dialog.findViewById<Button>(R.id.btn_close_badge_dialog)
+
+        nameView.text = badge.name
+        descriptionView.text = badge.description
+        
+        // Progress Logic
+        progressBar.max = badge.maxProgress
+        progressBar.progress = badge.progress
+        progressText.text = "Progress: ${badge.progress} / ${badge.maxProgress}"
+
+        // Tier Logic & Coloring
+        val tierColor = when (badge.currentTier) {
+            BadgeTier.BRONZE -> 0xFFCD7F32.toInt()
+            BadgeTier.SILVER -> 0xFFC0C0C0.toInt()
+            BadgeTier.GOLD -> 0xFFFFD700.toInt()
+            BadgeTier.PLATINUM -> 0xFFE5E4E2.toInt()
+            BadgeTier.DIAMOND -> 0xFFB9F2FF.toInt()
+            BadgeTier.ULTRA_RARE -> 0xFF9400D3.toInt()
+            BadgeTier.LEGENDARY -> 0xFFFF0000.toInt()
+            else -> ContextCompat.getColor(requireContext(), R.color.darker_gray)
+        }
+
+        iconView.setColorFilter(tierColor)
+        tierView.setTextColor(tierColor)
+        tierView.text = "TIER: ${badge.currentTier.name.replace("_", " ")}"
+        
+        // Force white color for reward text
+        rewardView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        
+        if (badge.rewardAmount > 0) {
+            rewardView.text = "Reward: ${formatNumber(badge.rewardAmount.toLong())} Credits"
+            rewardView.visibility = View.VISIBLE
+        } else {
+            rewardView.visibility = View.GONE
+        }
+        
+        if (!badge.isUnlocked) {
+            iconView.alpha = 0.5f
+            tierView.text = "TIER: LOCKED"
+            rewardView.alpha = 1.0f // Ensure text is fully opaque even if locked
+            claimButton.visibility = View.GONE
+        } else {
+            iconView.alpha = 1.0f
+            rewardView.alpha = 1.0f
+            
+            // Show Claim Button if unlocked AND not claimed AND user is viewing own profile
+            if (userId == currentUserId && !badge.isClaimed && badge.rewardAmount > 0) {
+                claimButton.visibility = View.VISIBLE
+                claimButton.text = "CLAIM" // Simplified text as reward is shown above
+                claimButton.setOnClickListener {
+                    BadgeProgressManager.claimReward(badge) {
+                        Toast.makeText(context, "Claimed ${badge.rewardAmount} Credits!", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                        // Refresh logic happens automatically via listener
+                    }
+                }
+            } else if (badge.isClaimed) {
+                claimButton.visibility = View.GONE
+                rewardView.text = "Reward: Claimed"
+                rewardView.setTextColor(ContextCompat.getColor(requireContext(), R.color.darker_gray))
+            } else {
+                claimButton.visibility = View.GONE
+            }
+        }
+
+        closeButton.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+    
+    // Helper for number formatting (reused)
+    private fun formatNumber(value: Long): String {
+        val v = value.toDouble()
+        if (v < 1000) return "%.0f".format(v)
+        val suffixes = arrayOf("", "k", "M", "B", "T")
+        val exp = (Math.log10(v) / 3).toInt().coerceIn(0, suffixes.size - 1)
+        return "%.1f%s".format(v / Math.pow(1000.0, exp.toDouble()), suffixes[exp])
     }
 
     private fun checkAvatarChangeLimitAndRegenerate(profileImage: ImageView) {
@@ -178,6 +288,12 @@ class UserProfileDialogFragment : DialogFragment() {
                         val star = snapshot.child("star").getValue(String::class.java) ?: "N/A"
                         val planet = snapshot.child("planet").getValue(String::class.java) ?: "N/A"
                         val hasLoneTravelerEmblem = snapshot.child("emblems/lone_traveler").getValue(Boolean::class.java) ?: false
+                        
+                        // Fetch ActionLogs for Badges
+                        val actionLogsSnapshot = snapshot.child("actionLogs")
+                        val actionLogs = actionLogsSnapshot.getValue(ActionLogs::class.java) ?: ActionLogs()
+                        val badges = BadgeManager.getBadges(actionLogs)
+                        badgeAdapter.updateBadges(badges)
 
                         lifecycleScope.launch { 
                             val avatar = AlienAvatarGenerator.generate(avatarSeed, 256, 256)
@@ -197,7 +313,7 @@ class UserProfileDialogFragment : DialogFragment() {
                     } 
                 })
             } else {
-                // Viewing other: Must fetch ONLY public fields individually
+                // Viewing other: Must fetch ONLY public fields individually or specific public node
                 userRef.child("nickname").get().addOnSuccessListener { 
                     profileName.text = it.getValue(String::class.java) ?: "N/A"
                 }
@@ -220,6 +336,13 @@ class UserProfileDialogFragment : DialogFragment() {
                     profileEmblem.visibility = if (hasEmblem) View.VISIBLE else View.GONE
                 }
                 
+                // Fetch ActionLogs for Badges (Allow viewing others badges)
+                userRef.child("actionLogs").get().addOnSuccessListener {
+                    val actionLogs = it.getValue(ActionLogs::class.java) ?: ActionLogs()
+                    val badges = BadgeManager.getBadges(actionLogs)
+                    badgeAdapter.updateBadges(badges)
+                }
+
                 // Location data might be restricted by rules, handle gracefully
                 userRef.child("galaxy").get().addOnSuccessListener { 
                     profileGalaxy.text = it.getValue(String::class.java) ?: "Unknown" 
@@ -280,7 +403,6 @@ class UserProfileDialogFragment : DialogFragment() {
 
     private fun blockUser() { 
         if (currentUserId == null || userId == null) return
-        // SECURITY FIX: Only write to my own node. Do not write to the other user's node.
         val updates = mapOf("/users/$currentUserId/blockedUsers/$userId" to true)
         
         database.reference.updateChildren(updates).addOnCompleteListener { task -> 
@@ -296,7 +418,6 @@ class UserProfileDialogFragment : DialogFragment() {
 
     private fun unblockUser() { 
         if (currentUserId == null || userId == null) return
-        // SECURITY FIX: Only write to my own node.
         val updates = mapOf("/users/$currentUserId/blockedUsers/$userId" to null)
         
         database.reference.updateChildren(updates).addOnCompleteListener { task -> 
@@ -344,7 +465,6 @@ class UserProfileDialogFragment : DialogFragment() {
             override fun onDataChange(snapshot: DataSnapshot) { 
                 val messages = snapshot.children.mapNotNull { it.getValue(ChatMessage::class.java) }
                 val report = hashMapOf("reporterId" to currentUserId, "reportedId" to userId, "timestamp" to System.currentTimeMillis(), "conversationSnapshot" to messages)
-                // Note: Ensure "reports" node has .write permission in rules if used
                 database.reference.child("reports").push().setValue(report).addOnCompleteListener { task -> 
                     if (task.isSuccessful) { 
                         Toast.makeText(context, "User reported.", Toast.LENGTH_SHORT).show() 
