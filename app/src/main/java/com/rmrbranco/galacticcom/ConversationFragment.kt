@@ -62,6 +62,7 @@ class ConversationFragment : Fragment() {
     private val currentUserId: String by lazy { auth.currentUser!!.uid }
     private var recipientId: String? = null
     private var isPrivate: Boolean = true
+    private var conversationExists: Boolean = false
 
     // Encryption properties
     private var sharedSecretKey: SecretKey? = null
@@ -188,8 +189,9 @@ class ConversationFragment : Fragment() {
             setupRichContentReceiver()
 
             database.reference.child("conversations").child(conversationId!!).child("isPrivate").get().addOnSuccessListener {
+                conversationExists = it.exists()
                 isPrivate = it.getValue(Boolean::class.java) ?: false
-                loadNicknamesAndListen() // Load nicknames after determining if private
+                loadNicknamesAndListen() // Load nicknames after determining if private and if exists
             }
 
             // New logic to handle incoming quote from HomeFragment
@@ -354,6 +356,14 @@ class ConversationFragment : Fragment() {
         typingStatusRef?.child(currentUserId)?.setValue(false)
         typingHandler.removeCallbacksAndMessages(null)
         isTypingStateSent = false
+        
+        // Ensure our public key is published before sending, just in case
+        if (!conversationExists) {
+             val myKeyPair = getKeyPairForConversation()
+             val myPublicKeyEncoded = CryptoManager.encodeKeyToBase64(myKeyPair.public)
+             publicKeysRef?.child(currentUserId)?.setValue(myPublicKeyEncoded)
+             conversationExists = true // Now it exists potentially
+        }
 
         val textToSend = if (isPrivate) {
             sharedSecretKey?.let { CryptoManager.encrypt(replyText, it) }
@@ -448,7 +458,11 @@ class ConversationFragment : Fragment() {
         publicKeysRef = database.reference.child("conversations").child(conversationId!!).child("public_keys")
 
         val myPublicKeyEncoded = CryptoManager.encodeKeyToBase64(myKeyPair.public)
-        publicKeysRef!!.child(currentUserId).setValue(myPublicKeyEncoded)
+        
+        // Prevent DB pollution: Only write public key if conversation already exists
+        if (conversationExists) {
+            publicKeysRef!!.child(currentUserId).setValue(myPublicKeyEncoded)
+        }
 
         // Se nao for privado, carrega logo as mensagens (para convites)
         if (!isPrivate) {

@@ -469,7 +469,7 @@ private fun deleteConversation(conversation: InboxConversation) {
                             buildAndInvokeCallback(messageContent)
                         }
                     } else {
-                        buildAndInvokeCallback("New conversation")
+                        callback(null)
                     }
 
                 }.addOnFailureListener {
