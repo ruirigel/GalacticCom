@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.rmrbranco.galacticcom.data.managers.AdManager
 import com.rmrbranco.galacticcom.data.managers.BadgeManager
 import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
@@ -36,6 +37,17 @@ class UserProfileDialogFragment : DialogFragment() {
     private var currentUserId: String? = null
     private var isBlocked = false
     private lateinit var badgeAdapter: BadgeAdapter
+    
+    // Hold references to profile views to allow refreshing
+    private var mProfileImage: ImageView? = null
+    private var mProfileName: TextView? = null
+    private var mProfileEmblem: ImageView? = null
+    private var mProfileBio: TextView? = null
+    private var mProfileExperience: TextView? = null
+    private var mProfileGalaxy: TextView? = null
+    private var mProfileStar: TextView? = null
+    private var mProfilePlanet: TextView? = null
+    private var mBlockUserButton: Button? = null
 
     companion object {
         private const val ARG_USER_ID = "user_id"
@@ -66,19 +78,22 @@ class UserProfileDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val profileImage = view.findViewById<ImageView>(R.id.profile_image)
-        val profileName = view.findViewById<TextView>(R.id.profile_name)
-        val profileEmblem = view.findViewById<ImageView>(R.id.profile_emblem_lone_traveler)
-        val profileBio = view.findViewById<TextView>(R.id.profile_bio)
-        val profileExperience = view.findViewById<TextView>(R.id.profile_experience)
-        val profileGalaxy = view.findViewById<TextView>(R.id.profile_galaxy)
-        val profileStar = view.findViewById<TextView>(R.id.profile_star)
-        val profilePlanet = view.findViewById<TextView>(R.id.profile_planet)
+        mProfileImage = view.findViewById(R.id.profile_image)
+        mProfileName = view.findViewById(R.id.profile_name)
+        mProfileEmblem = view.findViewById(R.id.profile_emblem_lone_traveler)
+        mProfileBio = view.findViewById(R.id.profile_bio)
+        mProfileExperience = view.findViewById(R.id.profile_experience)
+        mProfileGalaxy = view.findViewById(R.id.profile_galaxy)
+        mProfileStar = view.findViewById(R.id.profile_star)
+        mProfilePlanet = view.findViewById(R.id.profile_planet)
         val closeButton = view.findViewById<Button>(R.id.dialog_close_button)
         val regenerateAvatarButton = view.findViewById<Button>(R.id.btn_regenerate_avatar)
-        val blockUserButton = view.findViewById<Button>(R.id.btn_block_user)
+        mBlockUserButton = view.findViewById(R.id.btn_block_user)
         val reportAbuseButton = view.findViewById<Button>(R.id.btn_report_abuse)
         val badgesRecyclerView = view.findViewById<RecyclerView>(R.id.badges_recycler_view)
+        
+        // Load Ad
+        AdManager.loadRewardedAd(requireContext())
 
         // Setup RecyclerView for Badges with Click Listener
         badgeAdapter = BadgeAdapter { badge ->
@@ -89,22 +104,22 @@ class UserProfileDialogFragment : DialogFragment() {
 
         if (userId == currentUserId) {
             // Viewing own profile
-            blockUserButton.visibility = View.GONE
+            mBlockUserButton?.visibility = View.GONE
             reportAbuseButton.visibility = View.GONE
             regenerateAvatarButton.visibility = View.VISIBLE
-            regenerateAvatarButton.setOnClickListener { checkAvatarChangeLimitAndRegenerate(profileImage) }
+            regenerateAvatarButton.setOnClickListener { checkAvatarChangeLimitAndRegenerate(mProfileImage!!) }
         } else {
             // Viewing other user's profile
             regenerateAvatarButton.visibility = View.GONE
-            blockUserButton.visibility = View.VISIBLE
+            mBlockUserButton?.visibility = View.VISIBLE
             reportAbuseButton.visibility = View.VISIBLE
-            blockUserButton.setOnClickListener { showBlockConfirmationDialog() }
+            mBlockUserButton?.setOnClickListener { showBlockConfirmationDialog() }
             reportAbuseButton.setOnClickListener { showReportAbuseDialog() }
         }
 
         closeButton.setOnClickListener { dismiss() }
 
-        loadUserProfile(profileImage, profileName, profileEmblem, profileBio, profileExperience, profileGalaxy, profileStar, profilePlanet, blockUserButton)
+        loadUserProfile()
     }
 
     private fun showBadgeDetailsDialog(badge: Badge) {
@@ -168,12 +183,24 @@ class UserProfileDialogFragment : DialogFragment() {
             // Show Claim Button if unlocked AND not claimed AND user is viewing own profile
             if (userId == currentUserId && !badge.isClaimed && badge.rewardAmount > 0) {
                 claimButton.visibility = View.VISIBLE
-                claimButton.text = "CLAIM" // Simplified text as reward is shown above
+                claimButton.text = "CLAIM (AD)" // Hint that it requires an Ad
                 claimButton.setOnClickListener {
-                    BadgeProgressManager.claimReward(badge) {
-                        Toast.makeText(context, "Claimed ${badge.rewardAmount} Credits!", Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                        // Refresh logic happens automatically via listener
+                    if (AdManager.isAdReady()) {
+                        AdManager.showRewardedAd(requireActivity(), { _, _ ->
+                            // Reward earned
+                            BadgeProgressManager.claimReward(badge) {
+                                if (isAdded) {
+                                    Toast.makeText(context, "Claimed ${badge.rewardAmount} Credits!", Toast.LENGTH_SHORT).show()
+                                    dialog.dismiss()
+                                    loadUserProfile() // Refresh badges
+                                }
+                            }
+                        }, {
+                            // Ad closed without reward or after reward
+                        })
+                    } else {
+                        Toast.makeText(context, "Ad loading... please wait.", Toast.LENGTH_SHORT).show()
+                        AdManager.loadRewardedAd(requireContext())
                     }
                 }
             } else if (badge.isClaimed) {
@@ -262,17 +289,7 @@ class UserProfileDialogFragment : DialogFragment() {
         }
     }
     
-    private fun loadUserProfile(
-        profileImage: ImageView, 
-        profileName: TextView, 
-        profileEmblem: ImageView, 
-        profileBio: TextView, 
-        profileExperience: TextView, 
-        profileGalaxy: TextView, 
-        profileStar: TextView, 
-        profilePlanet: TextView, 
-        blockUserButton: Button
-    ) { 
+    private fun loadUserProfile() { 
         userId?.let { uid ->
             val userRef = database.reference.child("users").child(uid)
             
@@ -297,16 +314,16 @@ class UserProfileDialogFragment : DialogFragment() {
 
                         lifecycleScope.launch { 
                             val avatar = AlienAvatarGenerator.generate(avatarSeed, 256, 256)
-                            profileImage.setImageBitmap(avatar) 
+                            mProfileImage?.setImageBitmap(avatar) 
                         }
                         
-                        profileName.text = nickname
-                        profileBio.text = bio
-                        profileExperience.text = points.toString()
-                        profileGalaxy.text = galaxy
-                        profileStar.text = star
-                        profilePlanet.text = planet
-                        profileEmblem.visibility = if (hasLoneTravelerEmblem) View.VISIBLE else View.GONE
+                        mProfileName?.text = nickname
+                        mProfileBio?.text = bio
+                        mProfileExperience?.text = points.toString()
+                        mProfileGalaxy?.text = galaxy
+                        mProfileStar?.text = star
+                        mProfilePlanet?.text = planet
+                        mProfileEmblem?.visibility = if (hasLoneTravelerEmblem) View.VISIBLE else View.GONE
                     } 
                     override fun onCancelled(error: DatabaseError) { 
                         Toast.makeText(context, "Failed to load user profile.", Toast.LENGTH_SHORT).show() 
@@ -315,25 +332,25 @@ class UserProfileDialogFragment : DialogFragment() {
             } else {
                 // Viewing other: Must fetch ONLY public fields individually or specific public node
                 userRef.child("nickname").get().addOnSuccessListener { 
-                    profileName.text = it.getValue(String::class.java) ?: "N/A"
+                    mProfileName?.text = it.getValue(String::class.java) ?: "N/A"
                 }
                 userRef.child("bio").get().addOnSuccessListener { 
-                    profileBio.text = it.getValue(String::class.java) ?: "N/A"
+                    mProfileBio?.text = it.getValue(String::class.java) ?: "N/A"
                 }
                 userRef.child("experiencePoints").get().addOnSuccessListener { 
                     val points = it.getValue(Long::class.java) ?: 0L
-                    profileExperience.text = points.toString()
+                    mProfileExperience?.text = points.toString()
                 }
                 userRef.child("avatarSeed").get().addOnSuccessListener { 
                     val seed = it.getValue(String::class.java) ?: ""
                     lifecycleScope.launch { 
                         val avatar = AlienAvatarGenerator.generate(seed, 256, 256)
-                        profileImage.setImageBitmap(avatar) 
+                        mProfileImage?.setImageBitmap(avatar) 
                     }
                 }
                 userRef.child("emblems/lone_traveler").get().addOnSuccessListener { 
                     val hasEmblem = it.getValue(Boolean::class.java) ?: false
-                    profileEmblem.visibility = if (hasEmblem) View.VISIBLE else View.GONE
+                    mProfileEmblem?.visibility = if (hasEmblem) View.VISIBLE else View.GONE
                 }
                 
                 // Fetch ActionLogs for Badges (Allow viewing others badges)
@@ -345,16 +362,16 @@ class UserProfileDialogFragment : DialogFragment() {
 
                 // Location data might be restricted by rules, handle gracefully
                 userRef.child("galaxy").get().addOnSuccessListener { 
-                    profileGalaxy.text = it.getValue(String::class.java) ?: "Unknown" 
-                }.addOnFailureListener { profileGalaxy.text = "Restricted" }
+                    mProfileGalaxy?.text = it.getValue(String::class.java) ?: "Unknown" 
+                }.addOnFailureListener { mProfileGalaxy?.text = "Restricted" }
                 
                 userRef.child("star").get().addOnSuccessListener { 
-                    profileStar.text = it.getValue(String::class.java) ?: "Unknown" 
-                }.addOnFailureListener { profileStar.text = "Restricted" }
+                    mProfileStar?.text = it.getValue(String::class.java) ?: "Unknown" 
+                }.addOnFailureListener { mProfileStar?.text = "Restricted" }
                 
                 userRef.child("planet").get().addOnSuccessListener { 
-                    profilePlanet.text = it.getValue(String::class.java) ?: "Unknown" 
-                }.addOnFailureListener { profilePlanet.text = "Restricted" }
+                    mProfilePlanet?.text = it.getValue(String::class.java) ?: "Unknown" 
+                }.addOnFailureListener { mProfilePlanet?.text = "Restricted" }
             }
         }
         
@@ -362,7 +379,7 @@ class UserProfileDialogFragment : DialogFragment() {
             currentUserId?.let { 
                 database.reference.child("users").child(it).child("blockedUsers").child(userId!!).get().addOnSuccessListener { 
                     isBlocked = it.exists()
-                    blockUserButton.text = if (isBlocked) "Unblock" else "Block" 
+                    mBlockUserButton?.text = if (isBlocked) "Unblock" else "Block" 
                 } 
             } 
         } 
@@ -409,7 +426,7 @@ class UserProfileDialogFragment : DialogFragment() {
             if (task.isSuccessful) { 
                 Toast.makeText(context, "User blocked.", Toast.LENGTH_SHORT).show() 
                 isBlocked = true
-                view?.findViewById<Button>(R.id.btn_block_user)?.text = "Unblock"
+                mBlockUserButton?.text = "Unblock"
             } else { 
                 Toast.makeText(context, "Failed to block user.", Toast.LENGTH_SHORT).show() 
             } 
@@ -424,7 +441,7 @@ class UserProfileDialogFragment : DialogFragment() {
             if (task.isSuccessful) { 
                 Toast.makeText(context, "User unblocked.", Toast.LENGTH_SHORT).show() 
                 isBlocked = false
-                view?.findViewById<Button>(R.id.btn_block_user)?.text = "Block"
+                mBlockUserButton?.text = "Block"
             } else { 
                 Toast.makeText(context, "Failed to unblock user.", Toast.LENGTH_SHORT).show() 
             } 

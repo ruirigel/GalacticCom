@@ -36,6 +36,7 @@ The main screen shows public messages from other users in your current galaxy.
 
 *   **Balloon View:** See messages floating like balloons. They expire after 12 hours.
 *   **List View:** See a more traditional list of messages.
+*   **Toggle View:** To switch between Balloon View and List View, simply **long press the "Broadcast" icon** in the bottom navigation menu.
 *   **Real-Time Updates:** New messages will appear in real-time.
 *   **Persistence:** Messages are bound to the galaxy where they were sent. If you travel to another galaxy, you will stop seeing messages from your previous location, but they are not deleted. If you return later, they will still be there.
 
@@ -82,7 +83,7 @@ If you reach these limits, you can purchase items from the Pirate Store to conti
 
 ### **How do I travel to other galaxies or planets?**
 
-*   **Intergalactic Travel:** Use the Galaxy Directory to travel to other galaxies. The list only shows galaxies currently inhabited by other users.
+*   **Intergalactic Travel:** Use the Galaxy Directory to travel to other galaxies. The list only shows galaxies currently inhabited by other users. To switch between the List View and Map View of the galaxies, **long press the "Cosmos" icon** in the bottom navigation menu.
 *   **Planetary Travel:** Use the "Find New System" button in the "System" screen to travel to a new planet within your current galaxy. This is useful for finding planets with fresh resource reserves.
 
 ---

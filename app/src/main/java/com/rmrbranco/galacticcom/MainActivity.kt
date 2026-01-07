@@ -31,6 +31,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.messaging.FirebaseMessaging
+import com.rmrbranco.galacticcom.data.managers.BadgeManager
+import com.rmrbranco.galacticcom.data.model.ActionLogs
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -53,6 +55,11 @@ class MainActivity : AppCompatActivity() {
     private var travelListener: ValueEventListener? = null
     private var travelUserRef: DatabaseReference? = null
     private var lastProcessedTimestamp: Long = 0
+
+    // Badge Listener
+    private var badgeListener: ValueEventListener? = null
+    private var badgeUserRef: DatabaseReference? = null
+    private var knownClaimableBadges = mutableSetOf<String>()
 
     private val notificationBadgeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -111,6 +118,7 @@ class MainActivity : AppCompatActivity() {
             updateIpAddressAndCountry()
             getAndStoreFcmToken()
             listenForTravelCompletion(user.uid)
+            listenForBadgeUnlocks(user.uid)
         }
 
         settingsFab.setOnClickListener {
@@ -132,6 +140,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun listenForBadgeUnlocks(userId: String) {
+        if (badgeListener != null) return
+        
+        badgeUserRef = database.reference.child("users").child(userId).child("actionLogs")
+        badgeListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val logs = snapshot.getValue(ActionLogs::class.java) ?: return
+                
+                // Calculate Badges from logs
+                val badges = BadgeManager.getBadges(logs)
+                
+                // Identify unlocked but unclaimed badges with rewards
+                val currentClaimable = badges.filter { 
+                    it.isUnlocked && !it.isClaimed && it.rewardAmount > 0 
+                }.map { "${it.id}_${it.currentTier}" }.toSet() // Use ID + Tier to be unique
+
+                // Logic:
+                // 1. If we find MORE claimable badges than before -> New Unlock -> Toast
+                // 2. If it's the first check and we have claimable badges -> Reminder Toast
+                
+                val newUnlocks = currentClaimable - knownClaimableBadges
+                
+                if (newUnlocks.isNotEmpty()) {
+                    Toast.makeText(this@MainActivity, "New Badge Reward Unlocked! Visit your Profile to claim it.", Toast.LENGTH_LONG).show()
+                } else if (knownClaimableBadges.isEmpty() && currentClaimable.isNotEmpty()) {
+                    // This handles the first load case or re-login case
+                    // We don't want to spam, but a one-time reminder is good
+                     Toast.makeText(this@MainActivity, "You have unclaimed Badge Rewards in your Profile!", Toast.LENGTH_LONG).show()
+                }
+                
+                // Update known state
+                knownClaimableBadges.clear()
+                knownClaimableBadges.addAll(currentClaimable)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Ignore
+            }
+        }
+        badgeUserRef?.addValueEventListener(badgeListener!!)
+    }
+
     private fun setupLongPressNavigation() {
         bottomNavView.findViewById<View>(R.id.homeFragment)?.setOnLongClickListener {
             val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
@@ -367,6 +417,8 @@ class MainActivity : AppCompatActivity() {
         stopGlobalGlitchLoop()
         travelListener?.let { travelUserRef?.removeEventListener(it) }
         travelListener = null // Ensure listener is cleared so it can be re-added if activity recreates
+        badgeListener?.let { badgeUserRef?.removeEventListener(it) }
+        badgeListener = null
     }
 
     private fun showBadge(menuItemId: Int) {
