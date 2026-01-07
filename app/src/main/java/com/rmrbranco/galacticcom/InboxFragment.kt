@@ -72,29 +72,31 @@ class InboxFragment : Fragment() {
 
         setupRecyclerView()
         checkForInvitationsAndLoadConversations()
+        
+        // Handle initial navigation trigger only once
+        handleNavigationTrigger()
     }
 
     override fun onResume() {
         super.onResume()
         val bottomNavView = activity?.findViewById<BottomNavigationView>(R.id.bottom_nav_view)
         bottomNavView?.visibility = View.VISIBLE
-
-        if (findNavController().currentDestination?.id == R.id.inboxFragment) {
-            if (arguments?.getBoolean("navigateToConversation") == true) {
-                val bundle = bundleOf(
-                    "recipientId" to arguments?.getString("senderId"), // Corrected this line
-                    "originalMessageId" to arguments?.getString("originalMessageId"),
-                    "originalGalaxyName" to arguments?.getString("originalGalaxyName"),
-                    "isPrivate" to arguments?.getBoolean("isPrivate", false),
-                    "quotedMessageContent" to arguments?.getString("quotedMessageContent"),
-                    "quotedMessageAuthor" to arguments?.getString("quotedMessageAuthor")
-                )
-                arguments?.remove("navigateToConversation")
-                arguments?.remove("quotedMessageContent")
-                arguments?.remove("quotedMessageAuthor")
-                arguments?.remove("senderId")
-                findNavController().navigate(R.id.action_inbox_to_conversation, bundle)
-            }
+    }
+    
+    private fun handleNavigationTrigger() {
+        if (arguments?.getBoolean("navigateToConversation") == true) {
+            val bundle = bundleOf(
+                "recipientId" to arguments?.getString("senderId"),
+                "originalMessageId" to arguments?.getString("originalMessageId"),
+                "originalGalaxyName" to arguments?.getString("originalGalaxyName"),
+                "isPrivate" to arguments?.getBoolean("isPrivate", false),
+                "quotedMessageContent" to arguments?.getString("quotedMessageContent"),
+                "quotedMessageAuthor" to arguments?.getString("quotedMessageAuthor")
+            )
+            // Clear the arguments to prevent re-triggering
+            arguments?.clear()
+            
+            findNavController().navigate(R.id.action_inbox_to_conversation, bundle)
         }
     }
 

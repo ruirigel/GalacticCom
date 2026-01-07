@@ -78,7 +78,7 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="8dp"
-            android:progressDrawable="@drawable/bg_sent_bubble_curved"
+            android:progressDrawable="@drawable/bg_progress_bar_gradient"
             android:progressTint="@color/neon_cyan"
             android:max="100"
             android:progress="50"/>
