@@ -166,7 +166,7 @@
             android:minHeight="50dp"
             android:background="@drawable/edit_text_neon_background"
             android:hint="@string/reply_hint"
-            android:inputType="textCapSentences|textMultiLine|textShortMessage"
+            android:inputType="textCapSentences|textMultiLine"
             android:maxLines="5"
             android:maxLength="280"
             android:paddingStart="52dp"

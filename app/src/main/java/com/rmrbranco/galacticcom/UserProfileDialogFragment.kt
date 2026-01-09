@@ -1,6 +1,7 @@
 package com.rmrbranco.galacticcom
 
 import android.app.Dialog
+import android.content.Context
 import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.Gravity
@@ -28,7 +29,13 @@ import com.rmrbranco.galacticcom.data.model.ActionLogs
 import com.rmrbranco.galacticcom.data.model.Badge
 import com.rmrbranco.galacticcom.data.model.BadgeTier
 import kotlinx.coroutines.launch
+import java.security.KeyFactory
+import java.security.KeyPair
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
 import java.util.Calendar
+import javax.crypto.SecretKey
 
 class UserProfileDialogFragment : DialogFragment() {
 
@@ -552,23 +559,84 @@ class UserProfileDialogFragment : DialogFragment() {
     private fun reportAbuse() { 
         if (currentUserId == null || userId == null) return
         val conversationId = if (currentUserId!! < userId!!) "${currentUserId}_${userId}" else "${userId}_${currentUserId}"
-        val messagesRef = database.reference.child("conversations").child(conversationId).child("messages")
-        messagesRef.orderByChild("timestamp").limitToLast(60).addListenerForSingleValueEvent(object : ValueEventListener { 
-            override fun onDataChange(snapshot: DataSnapshot) { 
-                val messages = snapshot.children.mapNotNull { it.getValue(ChatMessage::class.java) }
-                val report = hashMapOf("reporterId" to currentUserId, "reportedId" to userId, "timestamp" to System.currentTimeMillis(), "conversationSnapshot" to messages)
-                database.reference.child("reports").push().setValue(report).addOnCompleteListener { task -> 
-                    if (task.isSuccessful) { 
-                        Toast.makeText(context, "User reported.", Toast.LENGTH_SHORT).show() 
-                    } else { 
-                        Toast.makeText(context, "Failed to report user.", Toast.LENGTH_SHORT).show() 
+        
+        // Retrieve keys for decryption
+        val myKeyPair = getKeyPairForConversation(conversationId)
+        
+        val proceedWithReport = { sharedSecret: SecretKey? ->
+            val messagesRef = database.reference.child("conversations").child(conversationId).child("messages")
+            messagesRef.orderByChild("timestamp").limitToLast(20).addListenerForSingleValueEvent(object : ValueEventListener { 
+                override fun onDataChange(snapshot: DataSnapshot) { 
+                    val messages = snapshot.children.mapNotNull { 
+                        val msg = it.getValue(ChatMessage::class.java) 
+                        if (msg != null && sharedSecret != null) {
+                            // Decrypt messages
+                            if (msg.messageText.isNotEmpty()) {
+                                msg.messageText = CryptoManager.decrypt(msg.messageText, sharedSecret) ?: msg.messageText
+                            }
+                            if (msg.quotedMessageText != null) {
+                                msg.quotedMessageText = CryptoManager.decrypt(msg.quotedMessageText!!, sharedSecret) ?: msg.quotedMessageText
+                            }
+                        }
+                        msg 
+                    }
+                    val report = hashMapOf("reporterId" to currentUserId, "reportedId" to userId, "timestamp" to System.currentTimeMillis(), "conversationSnapshot" to messages)
+                    database.reference.child("reports").push().setValue(report).addOnCompleteListener { task -> 
+                        if (task.isSuccessful) { 
+                            Toast.makeText(context, "User reported.", Toast.LENGTH_SHORT).show() 
+                        } else { 
+                            Toast.makeText(context, "Failed to report user.", Toast.LENGTH_SHORT).show() 
+                        } 
                     } 
                 } 
-            } 
-            override fun onCancelled(error: DatabaseError) { 
-                Toast.makeText(context, "Failed to create report.", Toast.LENGTH_SHORT).show() 
-            } 
-        }) 
+                override fun onCancelled(error: DatabaseError) { 
+                    Toast.makeText(context, "Failed to create report.", Toast.LENGTH_SHORT).show() 
+                } 
+            }) 
+        }
+        
+        if (myKeyPair != null) {
+             database.reference.child("conversations").child(conversationId).child("public_keys").child(userId!!).get().addOnSuccessListener { keySnapshot ->
+                val theirPublicKeyEncoded = keySnapshot.getValue(String::class.java)
+                var sharedSecret: SecretKey? = null
+                if (theirPublicKeyEncoded != null) {
+                    try {
+                        val theirPublicKey = CryptoManager.decodePublicKeyFromBase64(theirPublicKeyEncoded)
+                        sharedSecret = CryptoManager.getSharedSecret(myKeyPair.private, theirPublicKey)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                proceedWithReport(sharedSecret)
+             }.addOnFailureListener {
+                 proceedWithReport(null)
+             }
+        } else {
+             proceedWithReport(null)
+        }
+    }
+    
+    private fun getKeyPairForConversation(conversationId: String): KeyPair? {
+        if (context == null) return null
+        val prefs = requireActivity().getSharedPreferences("CryptoPrefs", Context.MODE_PRIVATE)
+        val privateKeyPrefKey = "private_key_${conversationId}"
+        val publicKeyPrefKey = "public_key_${conversationId}"
+
+        val privateKeyEncoded = prefs.getString(privateKeyPrefKey, null)
+        val publicKeyEncoded = prefs.getString(publicKeyPrefKey, null)
+
+        return if (privateKeyEncoded != null && publicKeyEncoded != null) {
+            try {
+                val keyFactory = KeyFactory.getInstance("EC")
+                val privateKey = keyFactory.generatePrivate(PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyEncoded)))
+                val publicKey = keyFactory.generatePublic(X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyEncoded)))
+                KeyPair(publicKey, privateKey)
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
     }
     
     override fun onStart() { 

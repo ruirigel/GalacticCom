@@ -240,7 +240,7 @@ class ConversationFragment : Fragment() {
 
     private fun setupInputProperties() {
         replyEditText.imeOptions = EditorInfo.IME_ACTION_SEND
-        replyEditText.setRawInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE)
+        replyEditText.setRawInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_MULTI_LINE)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -470,7 +470,7 @@ class ConversationFragment : Fragment() {
     private fun initKeyExchange() {
         if (isPrivate) {
             replyEditText.isEnabled = false
-            replyEditText.hint = "Establishing secure channel..."
+            replyEditText.hint = "Connecting..."
         }
 
         val myKeyPair = getKeyPairForConversation()

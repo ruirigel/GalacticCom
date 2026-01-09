@@ -25,6 +25,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -53,15 +55,25 @@ class SettingsFragment : Fragment() {
     private lateinit var defaultViewSwitch: SwitchMaterial
     private lateinit var musicSwitch: SwitchMaterial
     private lateinit var glitchSwitch: SwitchMaterial
+    
+    // Privacy Switches
+    private lateinit var badgesSwitch: SwitchMaterial
+    private lateinit var bioXpSwitch: SwitchMaterial
+    private lateinit var planetarySwitch: SwitchMaterial
+
     private lateinit var contentScrollView: ScrollView
     private lateinit var emailDataTextView: TextView
     private lateinit var titleTextView: TextView
     private lateinit var backButton: ImageButton
+    private lateinit var blockedCountTextView: TextView
 
     private var currentUserNickname: String = ""
     private var currentUserBio: String = ""
     private var currentUserAvatarSeed: String = ""
     private var userDataListener: ValueEventListener? = null
+    private var privacyListener: ValueEventListener? = null
+    private var blockedUsersListener: ValueEventListener? = null
+    private var currentBlockedCount: Long = 0
 
     private val titleLoadingHandler = Handler(Looper.getMainLooper())
     private var titleLoadingRunnable: Runnable? = null
@@ -90,10 +102,16 @@ class SettingsFragment : Fragment() {
         defaultViewSwitch = view.findViewById(R.id.switch_default_view)
         musicSwitch = view.findViewById(R.id.switch_music)
         glitchSwitch = view.findViewById(R.id.switch_glitch_effect)
+        
+        badgesSwitch = view.findViewById(R.id.switch_show_badges)
+        bioXpSwitch = view.findViewById(R.id.switch_show_bio_xp)
+        planetarySwitch = view.findViewById(R.id.switch_show_planetary_system)
+
         contentScrollView = view.findViewById(R.id.settings_scroll_view)
         emailDataTextView = view.findViewById(R.id.tv_setting_email_data)
         titleTextView = view.findViewById(R.id.settings_title)
         backButton = view.findViewById(R.id.back_button)
+        blockedCountTextView = view.findViewById(R.id.tv_blocked_count)
 
         // Setup listeners
         backButton.setOnClickListener { findNavController().popBackStack() }
@@ -103,14 +121,40 @@ class SettingsFragment : Fragment() {
         view.findViewById<Button>(R.id.btn_setting_logout).setOnClickListener { showLogoutConfirmationDialog() }
         view.findViewById<Button>(R.id.btn_setting_delete).setOnClickListener { showDeleteConfirmationDialog() }
         view.findViewById<Button>(R.id.btn_view_public_profile).setOnClickListener { showPublicProfileDialog() }
+        
+        // Blocked Users Button
+        view.findViewById<View>(R.id.btn_blocked_users).setOnClickListener {
+             if (currentBlockedCount > 0) {
+                 showBlockedUsersDialog()
+             } else {
+                 Toast.makeText(context, "No blocked users found", Toast.LENGTH_SHORT).show()
+             }
+        }
 
         setupDefaultViewSwitch()
         setupMusicSwitch()
         setupGlitchSwitch()
         listenForUserStatus()
+        setupPrivacySwitches()
+        listenForBlockedUsersCount()
         
         // Load Ad for nickname change
         AdManager.loadRewardedAd(requireContext())
+    }
+    
+    private fun listenForBlockedUsersCount() {
+        val currentUserId = auth.currentUser?.uid ?: return
+        val blockedRef = database.reference.child("users").child(currentUserId).child("blockedUsers")
+        blockedUsersListener = blockedRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded) return
+                currentBlockedCount = snapshot.childrenCount
+                blockedCountTextView.text = snapshot.childrenCount.toString()
+            }
+            override fun onCancelled(error: DatabaseError) {
+                // Ignore
+            }
+        })
     }
     
     private fun checkNicknameChangeEligibility() {
@@ -148,7 +192,15 @@ class SettingsFragment : Fragment() {
 
     private fun showPublicProfileDialog() { val userId = auth.currentUser?.uid; if (userId != null) { val userProfileDialog = UserProfileDialogFragment.newInstance(userId); userProfileDialog.show(parentFragmentManager, "UserProfileDialogFragment") } }
     
-    private fun setupDefaultViewSwitch() { val sharedPreferences = requireActivity().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE); val useVisualView = sharedPreferences.getBoolean("default_view_is_visual", true); defaultViewSwitch.isChecked = useVisualView; defaultViewSwitch.setOnCheckedChangeListener { _, isChecked -> sharedPreferences.edit { putBoolean("default_view_is_visual", isChecked) }; Toast.makeText(context, "View preference saved.", Toast.LENGTH_SHORT).show() } }
+    private fun setupDefaultViewSwitch() { 
+        val sharedPreferences = requireActivity().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+        val useVisualView = sharedPreferences.getBoolean("default_view_is_visual", true)
+        defaultViewSwitch.isChecked = useVisualView
+        defaultViewSwitch.setOnCheckedChangeListener { _, isChecked -> 
+            sharedPreferences.edit { putBoolean("default_view_is_visual", isChecked) }
+            Toast.makeText(context, "View preference saved.", Toast.LENGTH_SHORT).show() 
+        } 
+    }
     
     private fun setupMusicSwitch() {
         val sharedPreferences = requireActivity().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
@@ -156,6 +208,7 @@ class SettingsFragment : Fragment() {
         musicSwitch.isChecked = musicEnabled
         musicSwitch.setOnCheckedChangeListener { _, isChecked ->
             (requireActivity() as? MainActivity)?.setMusicEnabled(isChecked)
+            Toast.makeText(context, "Music preference saved.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -166,7 +219,45 @@ class SettingsFragment : Fragment() {
         glitchSwitch.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit { putBoolean("glitch_enabled", isChecked) }
             (requireActivity() as? MainActivity)?.setGlitchEnabled(isChecked)
+            Toast.makeText(context, "Glitch effect preference saved.", Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun setupPrivacySwitches() {
+        val privacyRef = userRef?.child("privacySettings")
+        privacyListener = privacyRef?.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded) return
+                val showBadges = snapshot.child("showBadges").getValue(Boolean::class.java) ?: true
+                val showBioXp = snapshot.child("showBioAndExperience").getValue(Boolean::class.java) ?: true
+                val showPlanetary = snapshot.child("showPlanetarySystem").getValue(Boolean::class.java) ?: true
+
+                badgesSwitch.setOnCheckedChangeListener(null)
+                bioXpSwitch.setOnCheckedChangeListener(null)
+                planetarySwitch.setOnCheckedChangeListener(null)
+
+                badgesSwitch.isChecked = showBadges
+                bioXpSwitch.isChecked = showBioXp
+                planetarySwitch.isChecked = showPlanetary
+
+                badgesSwitch.setOnCheckedChangeListener { _, isChecked -> updatePrivacySetting("showBadges", isChecked) }
+                bioXpSwitch.setOnCheckedChangeListener { _, isChecked -> updatePrivacySetting("showBioAndExperience", isChecked) }
+                planetarySwitch.setOnCheckedChangeListener { _, isChecked -> updatePrivacySetting("showPlanetarySystem", isChecked) }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error
+            }
+        })
+    }
+
+    private fun updatePrivacySetting(key: String, value: Boolean) {
+        userRef?.child("privacySettings")?.child(key)?.setValue(value)
+            ?.addOnSuccessListener {
+                if (isAdded) Toast.makeText(context, "Privacy setting saved.", Toast.LENGTH_SHORT).show()
+            }
+            ?.addOnFailureListener {
+                if (isAdded) Toast.makeText(context, "Failed to update privacy setting.", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun startTitleLoadingAnimation() { 
@@ -412,5 +503,120 @@ class SettingsFragment : Fragment() {
     }
 }
     
-    override fun onDestroyView() { super.onDestroyView(); userDataListener?.let { userRef?.removeEventListener(it) };  titleLoadingHandler.removeCallbacksAndMessages(null) }
+    private fun showBlockedUsersDialog() {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_blocked_users)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val recyclerView = dialog.findViewById<RecyclerView>(R.id.rv_blocked_users_list)
+        val noUsersTextView = dialog.findViewById<TextView>(R.id.tv_no_blocked_users)
+        val closeButton = dialog.findViewById<Button>(R.id.dialog_close_button)
+
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        
+        closeButton.setOnClickListener { dialog.dismiss() }
+
+        val currentUserId = auth.currentUser?.uid ?: return
+        val blockedRef = database.reference.child("users").child(currentUserId).child("blockedUsers")
+
+        blockedRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded) return
+                val blockedUids = snapshot.children.mapNotNull { it.key }
+                
+                if (blockedUids.isEmpty()) {
+                    dialog.dismiss()
+                } else {
+                    noUsersTextView.visibility = View.GONE
+                    recyclerView.visibility = View.VISIBLE
+                    loadBlockedUsersDetails(blockedUids, recyclerView, dialog)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                if (isAdded) Toast.makeText(context, "Failed to load blocked users.", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        dialog.show()
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    private fun loadBlockedUsersDetails(uids: List<String>, recyclerView: RecyclerView, dialog: Dialog) {
+        val usersList = mutableListOf<BlockedUserItem>()
+        
+        val tasks = uids.map { uid ->
+            val userRef = database.reference.child("users").child(uid)
+            val t1 = userRef.child("nickname").get()
+            val t2 = userRef.child("avatarSeed").get()
+            
+            Tasks.whenAllSuccess<DataSnapshot>(t1, t2).continueWith { task ->
+                val results = task.result
+                val nickname = results[0].getValue(String::class.java) ?: "Unknown"
+                val avatarSeed = results[1].getValue(String::class.java) ?: uid
+                BlockedUserItem(uid, nickname, avatarSeed)
+            }
+        }
+        
+        Tasks.whenAllSuccess<BlockedUserItem>(tasks).addOnSuccessListener { items ->
+            if (!isAdded) return@addOnSuccessListener
+            usersList.addAll(items)
+            val adapter = BlockedUsersAdapter(usersList) { user ->
+                showUnblockConfirmationDialog(user)
+            }
+            recyclerView.adapter = adapter
+        }.addOnFailureListener {
+            // Even if some fail, we might want to show partial results?
+            // Tasks.whenAllSuccess fails if *any* task fails.
+            // If permissions deny reading, the individual task fails.
+            // So we should handle individual failures to at least show the UID.
+            // However, with the current structure, if nickname reading is allowed, it should not fail.
+            // If it does, we probably can't do much better than showing the toast.
+            if (!isAdded) return@addOnFailureListener
+            Toast.makeText(context, "Error loading some user details.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showUnblockConfirmationDialog(user: BlockedUserItem) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_custom)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        val title = dialog.findViewById<TextView>(R.id.dialog_title)
+        val message = dialog.findViewById<TextView>(R.id.dialog_message)
+        val negativeBtn = dialog.findViewById<Button>(R.id.dialog_negative_button)
+        val positiveBtn = dialog.findViewById<Button>(R.id.dialog_positive_button)
+        val subtitle = dialog.findViewById<TextView>(R.id.dialog_subtitle)
+        val statsLayout = dialog.findViewById<LinearLayout>(R.id.galaxy_stats_layout)
+
+        title.text = "Unblock User"
+        message.text = "Are you sure you want to unblock ${user.nickname}?"
+        negativeBtn.text = "Cancel"
+        positiveBtn.text = "Unblock"
+        subtitle.visibility = View.GONE
+        statsLayout.visibility = View.GONE
+
+        negativeBtn.setOnClickListener { dialog.dismiss() }
+        positiveBtn.setOnClickListener {
+            unblockUser(user.uid)
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    private fun unblockUser(uid: String) {
+        val currentUserId = auth.currentUser?.uid ?: return
+        database.reference.child("users").child(currentUserId).child("blockedUsers").child(uid).removeValue()
+            .addOnSuccessListener {
+                if (isAdded) Toast.makeText(context, "User unblocked.", Toast.LENGTH_SHORT).show()
+                // The addValueEventListener in showBlockedUsersDialog will automatically update the list
+            }
+            .addOnFailureListener {
+                if (isAdded) Toast.makeText(context, "Failed to unblock user.", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    override fun onDestroyView() { super.onDestroyView(); userDataListener?.let { userRef?.removeEventListener(it) }; privacyListener?.let { userRef?.child("privacySettings")?.removeEventListener(it) }; blockedUsersListener?.let { userRef?.child("blockedUsers")?.removeEventListener(it) }; titleLoadingHandler.removeCallbacksAndMessages(null) }
 }
