@@ -13,7 +13,7 @@
         android:id="@+id/badge_icon"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:src="@android:drawable/ic_menu_info_details"
+        android:src="@drawable/halley_comet"
         android:contentDescription="Badge Icon"
         android:layout_marginBottom="4dp"/>
 

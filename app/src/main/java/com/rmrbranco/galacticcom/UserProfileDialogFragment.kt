@@ -1,6 +1,7 @@
 package com.rmrbranco.galacticcom
 
 import android.app.Dialog
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -140,6 +141,13 @@ class UserProfileDialogFragment : DialogFragment() {
         nameView.text = badge.name
         descriptionView.text = badge.description
         
+        // Set Badge Icon
+        if (badge.iconResId != 0) {
+            iconView.setImageResource(badge.iconResId)
+        } else {
+            iconView.setImageResource(android.R.drawable.ic_menu_info_details)
+        }
+        
         // Progress Logic
         progressBar.max = badge.maxProgress
         progressBar.progress = badge.progress
@@ -157,7 +165,6 @@ class UserProfileDialogFragment : DialogFragment() {
             else -> ContextCompat.getColor(requireContext(), R.color.darker_gray)
         }
 
-        iconView.setColorFilter(tierColor)
         tierView.setTextColor(tierColor)
         tierView.text = "TIER: ${badge.currentTier.name.replace("_", " ")}"
         
@@ -174,10 +181,15 @@ class UserProfileDialogFragment : DialogFragment() {
         if (!badge.isUnlocked) {
             iconView.alpha = 0.5f
             tierView.text = "TIER: LOCKED"
+            // Tint locked badge gray
+            val grayColor = ContextCompat.getColor(requireContext(), R.color.darker_gray)
+            iconView.setColorFilter(grayColor, PorterDuff.Mode.SRC_IN)
+            
             rewardView.alpha = 1.0f // Ensure text is fully opaque even if locked
             claimButton.visibility = View.GONE
         } else {
             iconView.alpha = 1.0f
+            iconView.clearColorFilter() // Show original full color PNG
             rewardView.alpha = 1.0f
             
             // Show Claim Button if unlocked AND not claimed AND user is viewing own profile

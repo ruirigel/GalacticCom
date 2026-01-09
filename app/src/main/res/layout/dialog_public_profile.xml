@@ -57,7 +57,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_star"
+                    android:src="@drawable/halley_comet"
                     android:visibility="gone"
                     app:tint="@color/neon_gold"
                     android:contentDescription="Lone Traveler Emblem" />

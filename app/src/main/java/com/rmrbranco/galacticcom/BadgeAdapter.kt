@@ -1,5 +1,6 @@
 package com.rmrbranco.galacticcom
 
+import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,26 +43,19 @@ class BadgeAdapter(
             progress.max = badge.maxProgress
             progress.progress = badge.progress
 
-            // Set color based on tier
-            // Note: Colors are ARGB.
-            val tierColor = when (badge.currentTier) {
-                BadgeTier.BRONZE -> 0xFFCD7F32.toInt()
-                BadgeTier.SILVER -> 0xFFC0C0C0.toInt()
-                BadgeTier.GOLD -> 0xFFFFD700.toInt()
-                BadgeTier.PLATINUM -> 0xFFE5E4E2.toInt()
-                BadgeTier.DIAMOND -> 0xFFB9F2FF.toInt()
-                BadgeTier.ULTRA_RARE -> 0xFF9400D3.toInt()
-                BadgeTier.LEGENDARY -> 0xFFFF0000.toInt()
-                else -> 0xFF888888.toInt() // Grey for locked/none
+            if (badge.iconResId != 0) {
+                icon.setImageResource(badge.iconResId)
             }
-            
-            icon.setColorFilter(tierColor)
-            
+
             if (!badge.isUnlocked) {
                 icon.alpha = 0.5f
-                name.setTextColor(ContextCompat.getColor(itemView.context, R.color.darker_gray))
+                // Tint locked badges gray to hide details/color
+                val grayColor = ContextCompat.getColor(itemView.context, R.color.darker_gray)
+                icon.setColorFilter(grayColor, PorterDuff.Mode.SRC_IN)
+                name.setTextColor(grayColor)
             } else {
                 icon.alpha = 1.0f
+                icon.clearColorFilter() // Show full color original PNG
                 name.setTextColor(ContextCompat.getColor(itemView.context, R.color.neon_cyan))
             }
             

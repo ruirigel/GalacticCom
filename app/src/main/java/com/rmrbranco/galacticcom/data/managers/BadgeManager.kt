@@ -1,5 +1,6 @@
 package com.rmrbranco.galacticcom.data.managers
 
+import com.rmrbranco.galacticcom.R
 import com.rmrbranco.galacticcom.data.model.ActionLogs
 import com.rmrbranco.galacticcom.data.model.Badge
 import com.rmrbranco.galacticcom.data.model.BadgeTier
@@ -85,6 +86,7 @@ object BadgeManager {
             id = id,
             name = "The Observer of Ages",
             description = "Maintain active account and broadcast at least once a month for 1, 5, and 10 years.",
+            iconResId = R.drawable.the_observer_of_ages,
             currentTier = tier,
             nextTier = nextTier,
             progress = months,
@@ -107,6 +109,7 @@ object BadgeManager {
             id = id,
             name = "Halley's Comet",
             description = "Be present during rare astronomical events (5x).",
+            iconResId = R.drawable.halley_comet,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.ULTRA_RARE,
             progress = events,
@@ -129,6 +132,7 @@ object BadgeManager {
             id = id,
             name = "The Murano Glass Bottle",
             description = "Send messages to 10 different galaxies.",
+            iconResId = R.drawable.the_murano_glass_bottle,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.GOLD,
             progress = count,
@@ -151,6 +155,7 @@ object BadgeManager {
             id = id,
             name = "Admiral of the Ghost Fleet",
             description = "Accumulate 1,000 severed private conversations.",
+            iconResId = R.drawable.admiral_of_the_ghost_fleet,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.LEGENDARY,
             progress = count,
@@ -175,6 +180,7 @@ object BadgeManager {
             id = id,
             name = "Star Nomad Lifetime Member",
             description = "Buy all unique items from Captain Harlock 50x.",
+            iconResId = R.drawable.star_nomad_lifetime_member,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.DIAMOND,
             progress = itemsMastered,
@@ -197,6 +203,7 @@ object BadgeManager {
             id = id,
             name = "Scholar of a Thousand Worlds",
             description = "Inhabit all existing galaxies.",
+            iconResId = R.drawable.scholar_of_thousand_worlds,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.PLATINUM,
             progress = visited,
@@ -219,6 +226,7 @@ object BadgeManager {
             id = id,
             name = "Dark Matter Miner",
             description = "Extract 1,000,000 units of rare resources.",
+            iconResId = R.drawable.dark_matter_miner,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.DIAMOND,
             progress = amount.toInt(),
@@ -241,6 +249,7 @@ object BadgeManager {
             id = id,
             name = "Voice of the Stars",
             description = "Send a total of 520 minutes of voice messages.",
+            iconResId = R.drawable.voice_of_the_stars,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.GOLD,
             progress = minutes.toInt(),
@@ -263,6 +272,7 @@ object BadgeManager {
             id = id,
             name = "Guardian of the Void",
             description = "Intercept 500 'Deep Space' messages.",
+            iconResId = R.drawable.guardian_of_the_voice,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.PLATINUM,
             progress = intercepted,
@@ -285,6 +295,7 @@ object BadgeManager {
             id = id,
             name = "Supernova Survivor",
             description = "Be in a galaxy at the moment of rebirth.",
+            iconResId = R.drawable.supernova_survivor,
             currentTier = tier,
             nextTier = if (unlocked) null else BadgeTier.LEGENDARY,
             progress = survived,
