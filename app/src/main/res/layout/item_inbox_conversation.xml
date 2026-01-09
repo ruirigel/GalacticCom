@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
-        android:textColor="@color/white"
+        android:textColor="@color/neon_cyan"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/tv_conversation_timestamp"
         app:layout_constraintStart_toEndOf="@+id/cv_avatar"
@@ -65,24 +65,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tv_interlocutor_nickname"
         tools:text="@string/conversation_timestamp_placeholder" />
-
-    <FrameLayout
-        android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/cv_avatar"
-        app:layout_constraintTop_toBottomOf="@+id/tv_last_message">
-
-        <Button
-            android:id="@+id/btn_delete_conversation"
-            style="@style/Widget.App.Button.Destructive"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/delete_conversation_button" />
-
-    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

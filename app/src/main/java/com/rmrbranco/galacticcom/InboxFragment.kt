@@ -6,10 +6,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ActionMode
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -30,6 +35,8 @@ import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 
 class InboxFragment : Fragment() {
 
@@ -43,6 +50,9 @@ class InboxFragment : Fragment() {
     private lateinit var emptyInboxTextView: TextView
     private lateinit var titleTextView: TextView
     private lateinit var inboxAdapter: InboxAdapter
+
+    private var actionMode: ActionMode? = null
+    private var selectedConversation: InboxConversation? = null
 
     // Conversation Data
     private var blockList: Set<String> = emptySet()
@@ -103,19 +113,87 @@ class InboxFragment : Fragment() {
     private fun setupRecyclerView() {
         inboxAdapter = InboxAdapter(
             onConversationClick = { conversation ->
+                if (actionMode != null) {
+                    actionMode?.finish()
+                }
                 val action = InboxFragmentDirections.actionInboxToConversation(
                     recipientId = conversation.otherUserId,
                     conversationId = conversation.conversationId
                 )
                 findNavController().navigate(action)
             },
-            onDeleteClick = { conversation ->
-                showDeleteConfirmationDialog(conversation)
+            onConversationLongClick = { conversation ->
+                selectedConversation = conversation
+                inboxAdapter.setSelected(conversation.conversationId)
+                
+                if (actionMode == null) {
+                    actionMode = view?.startActionMode(object : ActionMode.Callback {
+                        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            mode.menuInflater.inflate(R.menu.menu_inbox_selection, menu)
+                            mode.title = "Selected"
+                            
+                            val deleteItem = menu.findItem(R.id.action_delete_conversation)
+                            deleteItem?.icon?.let { icon ->
+                                val wrapped = DrawableCompat.wrap(icon)
+                                icon.mutate()
+                                DrawableCompat.setTint(
+                                    wrapped, 
+                                    ContextCompat.getColor(requireContext(), R.color.neon_cyan)
+                                )
+                                deleteItem.icon = wrapped
+                            }
+                            return true
+                        }
+
+                        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            return false
+                        }
+
+                        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                            return when (item.itemId) {
+                                R.id.action_delete_conversation -> {
+                                    selectedConversation?.let { showDeleteConfirmationDialog(it) }
+                                    mode.finish()
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+
+                        override fun onDestroyActionMode(mode: ActionMode) {
+                            actionMode = null
+                            selectedConversation = null
+                            inboxAdapter.setSelected(null)
+                        }
+                    })
+                }
             }
         )
         val layoutManager = LinearLayoutManager(context)
         conversationsRecyclerView.layoutManager = layoutManager
         conversationsRecyclerView.adapter = inboxAdapter
+
+        // Detect clicks on empty space to close ActionMode
+        val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                if (actionMode != null) {
+                    val child = conversationsRecyclerView.findChildViewUnder(e.x, e.y)
+                    if (child == null) {
+                        actionMode?.finish()
+                        return true
+                    }
+                }
+                return false
+            }
+        })
+
+        conversationsRecyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                return gestureDetector.onTouchEvent(e)
+            }
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
     }
 
     private fun startTitleLoadingAnimation() {
@@ -199,22 +277,6 @@ private fun deleteConversation(conversation: InboxConversation) {
                 }
                 
                 // Badge Logic: Severed Conversation
-                // Ideally this should check if the other user also deleted it to be truly "Severed",
-                // but for client-side approximation of "Active participation in ending things", we count this.
-                // Or better: We assume if I delete it, I am severing my connection.
-                // The badge requirement "Deleted symmetrically" is hard to track purely client side without a server function monitoring both deletions.
-                // For now, let's award it when *I* delete a conversation, as it contributes to the "Ghost Fleet" theme of detachment.
-                // A Cloud Function would be better to check if BOTH are null.
-                // I will add a counter here for "Conversations Deleted".
-                // If the badge implies mutual deletion, the server should increment the "Severed" counter.
-                // BUT, to satisfy the user request now, I will add it here as "Conversations Ended".
-                
-                // Actually, the requirement says "Acumular 1.000 conversas privadas que foram 'severed' (eliminadas simetricamente)".
-                // I cannot check the other user's status easily client-side if they deleted it first.
-                // I will increment a "severedConversationsCount" here. 
-                // A strictly correct implementation requires a Cloud Function trigger on conversation delete.
-                // Since I am only doing Android code, I will simulate it by incrementing when the user deletes a conversation.
-                
                 val logsRef = database.getReference("users/$currentUserId/actionLogs/severedConversationsCount")
                 logsRef.runTransaction(object : Transaction.Handler {
                     override fun doTransaction(mutableData: MutableData): Transaction.Result {
@@ -497,5 +559,6 @@ private fun deleteConversation(conversation: InboxConversation) {
         super.onDestroyView()
         titleLoadingHandler.removeCallbacksAndMessages(null)
         conversationDetailsListener?.let { userRef?.child("conversations")?.removeEventListener(it) }
+        actionMode?.finish()
     }
 }

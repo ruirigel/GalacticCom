@@ -49,6 +49,11 @@ class UserProfileDialogFragment : DialogFragment() {
     private var mProfileStar: TextView? = null
     private var mProfilePlanet: TextView? = null
     private var mBlockUserButton: Button? = null
+    
+    // Containers
+    private lateinit var badgesContainer: LinearLayout
+    private lateinit var bioXpContainer: LinearLayout
+    private lateinit var planetaryContainer: LinearLayout
 
     companion object {
         private const val ARG_USER_ID = "user_id"
@@ -87,6 +92,11 @@ class UserProfileDialogFragment : DialogFragment() {
         mProfileGalaxy = view.findViewById(R.id.profile_galaxy)
         mProfileStar = view.findViewById(R.id.profile_star)
         mProfilePlanet = view.findViewById(R.id.profile_planet)
+        
+        badgesContainer = view.findViewById(R.id.container_badges)
+        bioXpContainer = view.findViewById(R.id.container_bio_experience)
+        planetaryContainer = view.findViewById(R.id.container_planetary_system)
+        
         val closeButton = view.findViewById<Button>(R.id.dialog_close_button)
         val regenerateAvatarButton = view.findViewById<Button>(R.id.btn_regenerate_avatar)
         mBlockUserButton = view.findViewById(R.id.btn_block_user)
@@ -318,6 +328,15 @@ class UserProfileDialogFragment : DialogFragment() {
                         val planet = snapshot.child("planet").getValue(String::class.java) ?: "N/A"
                         val hasLoneTravelerEmblem = snapshot.child("emblems/lone_traveler").getValue(Boolean::class.java) ?: false
                         
+                        // Privacy checks (Apply to self view too, to confirm it works)
+                        val showBadges = snapshot.child("privacySettings/showBadges").getValue(Boolean::class.java) ?: true
+                        val showBioXp = snapshot.child("privacySettings/showBioAndExperience").getValue(Boolean::class.java) ?: true
+                        val showPlanetary = snapshot.child("privacySettings/showPlanetarySystem").getValue(Boolean::class.java) ?: true
+
+                        badgesContainer.visibility = if (showBadges) View.VISIBLE else View.GONE
+                        bioXpContainer.visibility = if (showBioXp) View.VISIBLE else View.GONE
+                        planetaryContainer.visibility = if (showPlanetary) View.VISIBLE else View.GONE
+
                         // Fetch ActionLogs for Badges
                         val actionLogsSnapshot = snapshot.child("actionLogs")
                         val actionLogs = actionLogsSnapshot.getValue(ActionLogs::class.java) ?: ActionLogs()
@@ -342,48 +361,92 @@ class UserProfileDialogFragment : DialogFragment() {
                     } 
                 })
             } else {
-                // Viewing other: Must fetch ONLY public fields individually or specific public node
-                userRef.child("nickname").get().addOnSuccessListener { 
-                    mProfileName?.text = it.getValue(String::class.java) ?: "N/A"
-                }
-                userRef.child("bio").get().addOnSuccessListener { 
-                    mProfileBio?.text = it.getValue(String::class.java) ?: "N/A"
-                }
-                userRef.child("experiencePoints").get().addOnSuccessListener { 
-                    val points = it.getValue(Long::class.java) ?: 0L
-                    mProfileExperience?.text = points.toString()
-                }
-                userRef.child("avatarSeed").get().addOnSuccessListener { 
-                    val seed = it.getValue(String::class.java) ?: ""
-                    lifecycleScope.launch { 
-                        val avatar = AlienAvatarGenerator.generate(seed, 256, 256)
-                        mProfileImage?.setImageBitmap(avatar) 
+                // Viewing other: Fetch privacy settings first
+                userRef.child("privacySettings").get().addOnSuccessListener { privacySnap ->
+                    val showBadges = privacySnap.child("showBadges").getValue(Boolean::class.java) ?: true
+                    val showBioXp = privacySnap.child("showBioAndExperience").getValue(Boolean::class.java) ?: true
+                    val showPlanetary = privacySnap.child("showPlanetarySystem").getValue(Boolean::class.java) ?: true
+
+                    if (showBadges) {
+                        badgesContainer.visibility = View.VISIBLE
+                        // Fetch ActionLogs for Badges
+                        userRef.child("actionLogs").get().addOnSuccessListener {
+                            val actionLogs = it.getValue(ActionLogs::class.java) ?: ActionLogs()
+                            val badges = BadgeManager.getBadges(actionLogs)
+                            badgeAdapter.updateBadges(badges)
+                        }
+                    } else {
+                        badgesContainer.visibility = View.GONE
+                    }
+
+                    if (showBioXp) {
+                         bioXpContainer.visibility = View.VISIBLE
+                         userRef.child("bio").get().addOnSuccessListener { 
+                            mProfileBio?.text = it.getValue(String::class.java) ?: "N/A"
+                         }
+                         userRef.child("experiencePoints").get().addOnSuccessListener { 
+                            val points = it.getValue(Long::class.java) ?: 0L
+                            mProfileExperience?.text = points.toString()
+                         }
+                    } else {
+                         bioXpContainer.visibility = View.GONE
+                    }
+
+                    if (showPlanetary) {
+                        planetaryContainer.visibility = View.VISIBLE
+                         userRef.child("galaxy").get().addOnSuccessListener { 
+                            mProfileGalaxy?.text = it.getValue(String::class.java) ?: "Unknown" 
+                        }.addOnFailureListener { mProfileGalaxy?.text = "Restricted" }
+                        
+                        userRef.child("star").get().addOnSuccessListener { 
+                            mProfileStar?.text = it.getValue(String::class.java) ?: "Unknown" 
+                        }.addOnFailureListener { mProfileStar?.text = "Restricted" }
+                        
+                        userRef.child("planet").get().addOnSuccessListener { 
+                            mProfilePlanet?.text = it.getValue(String::class.java) ?: "Unknown" 
+                        }.addOnFailureListener { mProfilePlanet?.text = "Restricted" }
+                    } else {
+                        planetaryContainer.visibility = View.GONE
+                    }
+
+                    // Always fetch these as they are basic profile info (Header)
+                    userRef.child("nickname").get().addOnSuccessListener { 
+                        mProfileName?.text = it.getValue(String::class.java) ?: "N/A"
+                    }
+                    userRef.child("avatarSeed").get().addOnSuccessListener { 
+                        val seed = it.getValue(String::class.java) ?: ""
+                        lifecycleScope.launch { 
+                            val avatar = AlienAvatarGenerator.generate(seed, 256, 256)
+                            mProfileImage?.setImageBitmap(avatar) 
+                        }
+                    }
+                    userRef.child("emblems/lone_traveler").get().addOnSuccessListener { 
+                        val hasEmblem = it.getValue(Boolean::class.java) ?: false
+                        mProfileEmblem?.visibility = if (hasEmblem) View.VISIBLE else View.GONE
+                    }
+                }.addOnFailureListener {
+                    // Default behavior if privacy settings fetch fails: Hide sensitive info for privacy safety
+                    // This is VITAL because if the rules don't allow reading privacySettings, we MUST assume user wants privacy.
+                    badgesContainer.visibility = View.GONE
+                    bioXpContainer.visibility = View.GONE
+                    planetaryContainer.visibility = View.GONE
+                    
+                    // Always fetch these as they are basic profile info (Header)
+                    userRef.child("nickname").get().addOnSuccessListener { 
+                        mProfileName?.text = it.getValue(String::class.java) ?: "N/A"
+                    }
+                    userRef.child("avatarSeed").get().addOnSuccessListener { 
+                        val seed = it.getValue(String::class.java) ?: ""
+                        lifecycleScope.launch { 
+                            val avatar = AlienAvatarGenerator.generate(seed, 256, 256)
+                            mProfileImage?.setImageBitmap(avatar) 
+                        }
+                    }
+                    userRef.child("emblems/lone_traveler").get().addOnSuccessListener { 
+                        val hasEmblem = it.getValue(Boolean::class.java) ?: false
+                        mProfileEmblem?.visibility = if (hasEmblem) View.VISIBLE else View.GONE
                     }
                 }
-                userRef.child("emblems/lone_traveler").get().addOnSuccessListener { 
-                    val hasEmblem = it.getValue(Boolean::class.java) ?: false
-                    mProfileEmblem?.visibility = if (hasEmblem) View.VISIBLE else View.GONE
-                }
-                
-                // Fetch ActionLogs for Badges (Allow viewing others badges)
-                userRef.child("actionLogs").get().addOnSuccessListener {
-                    val actionLogs = it.getValue(ActionLogs::class.java) ?: ActionLogs()
-                    val badges = BadgeManager.getBadges(actionLogs)
-                    badgeAdapter.updateBadges(badges)
-                }
-
-                // Location data might be restricted by rules, handle gracefully
-                userRef.child("galaxy").get().addOnSuccessListener { 
-                    mProfileGalaxy?.text = it.getValue(String::class.java) ?: "Unknown" 
-                }.addOnFailureListener { mProfileGalaxy?.text = "Restricted" }
-                
-                userRef.child("star").get().addOnSuccessListener { 
-                    mProfileStar?.text = it.getValue(String::class.java) ?: "Unknown" 
-                }.addOnFailureListener { mProfileStar?.text = "Restricted" }
-                
-                userRef.child("planet").get().addOnSuccessListener { 
-                    mProfilePlanet?.text = it.getValue(String::class.java) ?: "Unknown" 
-                }.addOnFailureListener { mProfilePlanet?.text = "Restricted" }
             }
         }
         

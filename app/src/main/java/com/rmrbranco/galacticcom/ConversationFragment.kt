@@ -15,9 +15,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -75,6 +77,7 @@ class ConversationFragment : Fragment() {
     private lateinit var typingIndicator: TextView
     private lateinit var loadingProgressBar: ProgressBar
     private lateinit var attachImageButton: ImageButton
+    private lateinit var emojiButton: ImageButton
     private lateinit var scrollToBottomButton: ImageButton
 
     // Custom Toolbar Views
@@ -179,6 +182,7 @@ class ConversationFragment : Fragment() {
 
         bindViews(view)
         setupClickListeners()
+        setupInputProperties()
 
         args.recipientId?.let { recId ->
             this.recipientId = recId
@@ -214,6 +218,7 @@ class ConversationFragment : Fragment() {
         typingIndicator = view.findViewById(R.id.tv_typing_indicator)
         loadingProgressBar = view.findViewById(R.id.pb_loading)
         attachImageButton = view.findViewById(R.id.btn_attach_image)
+        emojiButton = view.findViewById(R.id.btn_emoji)
         scrollToBottomButton = view.findViewById(R.id.fab_scroll_to_bottom)
 
         // Toolbar Views
@@ -233,6 +238,11 @@ class ConversationFragment : Fragment() {
         voiceMessageChronometer = view.findViewById(R.id.chronometer_voice_message)
     }
 
+    private fun setupInputProperties() {
+        replyEditText.imeOptions = EditorInfo.IME_ACTION_SEND
+        replyEditText.setRawInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE)
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupClickListeners() {
         backButton.setOnClickListener { findNavController().popBackStack() }
@@ -240,6 +250,14 @@ class ConversationFragment : Fragment() {
         
         cancelReplyButton.setOnClickListener { cancelReply() }
         attachImageButton.setOnClickListener { pickImageLauncher.launch("image/*") }
+        emojiButton.setOnClickListener { 
+            replyEditText.requestFocus()
+            val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.showSoftInput(replyEditText, InputMethodManager.SHOW_IMPLICIT)
+            // Note: Cannot force system keyboard to open specifically in emoji tab programmatically
+            // A custom emoji picker view would be required for full functionality
+            Toast.makeText(context, "Use the emoji key on your keyboard", Toast.LENGTH_SHORT).show()
+        }
         scrollToBottomButton.setOnClickListener { messagesRecyclerView.smoothScrollToPosition(conversationAdapter.itemCount - 1) }
         sendReplyButton.setOnClickListener { checkPrivateMessageLimitAndSend() }
         avatarImageView.setOnClickListener { navigateToUserProfile() }
@@ -408,9 +426,10 @@ class ConversationFragment : Fragment() {
                 ChatMessage(currentUserId, textToSend ?: "", ServerValue.TIMESTAMP)
             }
 
+            replyEditText.text.clear()
+            cancelReply()
+
             messageRef.setValue(chatMessage).addOnSuccessListener {
-                replyEditText.text.clear()
-                cancelReply()
                 ExperienceUtils.incrementExperience(currentUserId)
                 
                 if (currentCount != null && logsRef != null) {
@@ -869,6 +888,8 @@ class ConversationFragment : Fragment() {
                 
                 sendReplyButton.visibility = if (hasText) View.VISIBLE else View.GONE
                 voiceMessageButton.visibility = if (hasText) View.GONE else View.VISIBLE
+                attachImageButton.visibility = if (hasText) View.GONE else View.VISIBLE
+                emojiButton.visibility = if (hasText) View.VISIBLE else View.GONE
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}

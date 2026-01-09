@@ -95,9 +95,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         
                         if (conversationId.isNullOrEmpty()) {
                             Log.e(TAG, "Private message is missing 'conversationId'.")
-                            sendNotification(title, "You received a new private message.")
+                            sendNotification(title, "You received a new private message.", messageType = "private_message")
                         } else {
-                            decryptAndShowNotification(title, body, conversationId, senderId)
+                            decryptAndShowNotification(title, body, conversationId, senderId, "private_message")
                         }
                     }
 
@@ -105,14 +105,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         Log.e(TAG, "Database error when checking blocked users. Processing message anyway.", error.toException())
                         val title = data["title"] ?: "New Private Message"
                         val body = data["body"] ?: "You received a new message."
-                        sendNotification(title, body)
+                        sendNotification(title, body, messageType = "private_message")
                     }
                 })
             }
             "public_message" -> {
                 val title = data["title"] ?: "New Public Message"
                 val body = data["body"] ?: "A new message was posted in a public channel."
-                sendNotification(title, body)
+                sendNotification(title, body, messageType = "public_message")
             }
             else -> {
                 Log.w(TAG, "Received a message with an unknown type: $messageType")
@@ -134,11 +134,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         return messages.random()
     }
 
-    private fun decryptAndShowNotification(title: String, encryptedBody: String, conversationId: String, senderId: String) {
+    private fun decryptAndShowNotification(title: String, encryptedBody: String, conversationId: String, senderId: String, messageType: String) {
         val myKeyPair = getKeyPairForConversation(conversationId)
         if (myKeyPair == null) {
             Log.e(TAG, "Could not retrieve KeyPair for conversation $conversationId. Cannot decrypt.")
-            sendNotification(title, "You received an encrypted message.")
+            sendNotification(title, "You received an encrypted message.", messageType = messageType)
             return
         }
 
@@ -150,7 +150,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val theirPublicKeyEncoded = theirPublicKeySnapshot.getValue(String::class.java)
             if (theirPublicKeyEncoded == null) {
                 Log.e(TAG, "Could not find the public key for sender $senderId in conversation $conversationId.")
-                sendNotification(title, "Key error: Cannot decrypt message.")
+                sendNotification(title, "Key error: Cannot decrypt message.", messageType = messageType)
                 return@addOnSuccessListener
             }
 
@@ -158,23 +158,26 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val theirPublicKey = CryptoManager.decodePublicKeyFromBase64(theirPublicKeyEncoded)
                 val sharedSecret = CryptoManager.getSharedSecret(myKeyPair.private, theirPublicKey)
                 val decryptedText = CryptoManager.decrypt(encryptedBody, sharedSecret) ?: "[Message could not be decrypted]"
-                sendNotification(title, decryptedText)
+                sendNotification(title, decryptedText, messageType = messageType)
             } catch (e: Exception) {
                 Log.e(TAG, "Decryption process failed for conversation $conversationId", e)
-                sendNotification(title, "A decryption error occurred.")
+                sendNotification(title, "A decryption error occurred.", messageType = messageType)
             }
         }.addOnFailureListener { error ->
             Log.e(TAG, "Failed to retrieve public key for decryption.", error)
-            sendNotification(title, "Database error while decrypting message.")
+            sendNotification(title, "Database error while decrypting message.", messageType = messageType)
         }
     }
     
-    private fun sendNotification(title: String, messageBody: String) {
+    private fun sendNotification(title: String, messageBody: String, messageType: String? = null) {
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            if (messageType != null) {
+                putExtra(EXTRA_MESSAGE_TYPE, messageType)
+            }
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         

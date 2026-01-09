@@ -149,4 +149,7 @@
     <string name="no_blocked_users">No blocked users found.</string>
     <string name="unblock">Unblock</string>
     <string name="manage_blocked_users_title">Blocked Users</string>
+    <string name="show_badges_label">Show Badges</string>
+    <string name="show_bio_xp_label">Show Bio and Experience</string>
+    <string name="show_planetary_system_label">Show Planetary System</string>
 </resources>

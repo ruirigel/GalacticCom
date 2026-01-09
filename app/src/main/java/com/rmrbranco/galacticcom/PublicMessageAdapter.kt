@@ -61,22 +61,30 @@ class PublicMessageAdapter(
                 contentToDisplay
             }
 
-            val neonCyanColor = ContextCompat.getColor(itemView.context, R.color.neon_cyan)
+            // Msg label is now in XML (tv_message_label), so we just set the content here
+            messageContent.text = displayContent
 
-            val contentPrefix = "Msg: "
-            val contentSpannable = SpannableString("$contentPrefix$displayContent")
-            contentSpannable.setSpan(ForegroundColorSpan(neonCyanColor), 0, contentPrefix.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-            messageContent.text = contentSpannable
-
-            val senderPrefix = "from: "
+            val whiteColor = ContextCompat.getColor(itemView.context, android.R.color.white)
+            val senderPrefix = "by: "
             val fromSeparator = " from "
-            val senderText = "$senderPrefix${message.senderGalaxy}$fromSeparator${message.senderNickname}"
-            val fromIndex = senderText.lastIndexOf(fromSeparator)
+            val nickname = message.senderNickname ?: "Unknown"
+            val galaxy = message.senderGalaxy ?: "Unknown"
+
+            // Format: by: [nickname] from [Galaxyname]
+            // "by:" and "from" are neon_cyan (default from XML), nickname and galaxy are white
+            val senderText = "$senderPrefix$nickname$fromSeparator$galaxy"
             val senderSpannable = SpannableString(senderText)
-            senderSpannable.setSpan(ForegroundColorSpan(neonCyanColor), 0, senderPrefix.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-            if (fromIndex != -1) {
-                senderSpannable.setSpan(ForegroundColorSpan(neonCyanColor), fromIndex, fromIndex + fromSeparator.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            val nicknameStart = senderPrefix.length
+            val nicknameEnd = nicknameStart + nickname.length
+            senderSpannable.setSpan(ForegroundColorSpan(whiteColor), nicknameStart, nicknameEnd, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            val galaxyStart = nicknameEnd + fromSeparator.length
+            val galaxyEnd = galaxyStart + galaxy.length
+            if (galaxyStart < senderText.length) {
+                senderSpannable.setSpan(ForegroundColorSpan(whiteColor), galaxyStart, galaxyEnd.coerceAtMost(senderText.length), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
+
             messageSender.text = senderSpannable
 
             val timestamp = message.timestamp as? Long

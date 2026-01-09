@@ -73,43 +73,51 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/profile_bio"
+            <LinearLayout
+                android:id="@+id/container_bio_experience"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/user_bio_placeholder"
-                android:textColor="@color/white"
-                android:textAlignment="textStart" />
-
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/profile_experience_label"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/profile_bio"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/experience_label"
-                    android:textColor="@color/neon_cyan"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/profile_experience"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toEndOf="@+id/profile_experience_label"
-                    android:text="@string/experience_placeholder"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/user_bio_placeholder"
                     android:textColor="@color/white"
-                    android:textSize="16sp" />
-            </RelativeLayout>
+                    android:textAlignment="textStart" />
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/profile_experience_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/experience_label"
+                        android:textColor="@color/neon_cyan"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/profile_experience"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@+id/profile_experience_label"
+                        android:text="@string/experience_placeholder"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
+                </RelativeLayout>
+            </LinearLayout>
 
         </LinearLayout>
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/container_planetary_system"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -195,6 +203,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/container_badges"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"

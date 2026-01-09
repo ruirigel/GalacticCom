@@ -2,11 +2,14 @@ package com.rmrbranco.galacticcom
 
 import android.app.Dialog
 import android.os.CountDownTimer
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -52,7 +55,19 @@ class SentMessageAdapter(private val onDeleteClick: (SentMessage) -> Unit) : Lis
                 binaryContent
             }
 
-            galaxyTextView.text = "to: ${sentMessage.sentToGalaxy}"
+            val toPrefix = "to: "
+            val fullText = "$toPrefix${sentMessage.sentToGalaxy}"
+            val spannable = SpannableString(fullText)
+            
+            // Base color is neon_cyan from XML. We only need to color the Galaxy Name white.
+            val whiteColor = ContextCompat.getColor(itemView.context, android.R.color.white)
+            spannable.setSpan(
+                ForegroundColorSpan(whiteColor), 
+                toPrefix.length, 
+                fullText.length, 
+                SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            galaxyTextView.text = spannable
 
             val timestamp = sentMessage.timestamp as? Long
             if (timestamp != null) {

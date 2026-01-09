@@ -109,6 +109,16 @@ class MainActivity : AppCompatActivity() {
             val navGraph = navController.navInflater.inflate(R.navigation.nav_graph)
             navGraph.setStartDestination(startDestination)
             navController.graph = navGraph
+
+            // Handle notification navigation
+            if (user != null) {
+                intent?.getStringExtra(MyFirebaseMessagingService.EXTRA_MESSAGE_TYPE)?.let { messageType ->
+                    when (messageType) {
+                        "private_message" -> navController.navigate(R.id.inboxFragment)
+                        "public_message" -> navController.navigate(R.id.homeFragment)
+                    }
+                }
+            }
         }
 
         // --- BACKGROUND TASKS ---
