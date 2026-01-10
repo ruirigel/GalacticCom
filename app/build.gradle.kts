@@ -17,10 +17,11 @@ fun getVersionCode(): Int {
             commandLine("git", "rev-list", "--count", "HEAD")
             standardOutput = stdout
         }
-        stdout.toString().trim().toInt()
+        // Offset 63 para garantir que a versão comece em 81 (commit count atual: 18)
+        stdout.toString().trim().toInt() + 63
     } catch (e: Exception) {
         // Fallback version code
-        1
+        81
     }
 }
 
