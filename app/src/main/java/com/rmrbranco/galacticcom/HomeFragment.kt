@@ -11,8 +11,13 @@ import android.os.Looper
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
+import android.view.ActionMode
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -25,6 +30,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -97,6 +103,9 @@ class HomeFragment : Fragment() {
     private var fadeInAnimation: Animation? = null
     private var hasPlayedInitialAnimation = false
     private var isMessagesViewVisible = false
+
+    private var actionMode: ActionMode? = null
+    private var selectedMessage: PublicMessage? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -585,7 +594,99 @@ class HomeFragment : Fragment() {
     private fun fillEmptyBalloons() { messageList.firstOrNull { it.messageId !in displayedBalloons }?.let { showBalloonNotification(it, withAnimation = false) } }
     private fun showErrorState(message: String) { if (!isAdded) return; currentGalaxyName?.let { stopTitleLoadingAnimation(it) }; publicMessagesRecyclerView.isGone = true; travelStatusTextView.isGone = true; galaxyNameTextView.isGone = true; emptyHomeTextView.text = message; emptyHomeTextView.isVisible = true }
     private fun showViewMessageDialog(message: PublicMessage) { Dialog(requireContext()).apply { setContentView(R.layout.dialog_view_message); window?.setBackgroundDrawableResource(android.R.color.transparent); val neonCyanColor = ContextCompat.getColor(context, R.color.neon_cyan); findViewById<TextView>(R.id.tv_dialog_sender).text = SpannableString("from: ${message.senderGalaxy} by ${message.senderNickname}").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 5, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE); indexOf(" by ").takeIf { it != -1 }?.let { setSpan(ForegroundColorSpan(neonCyanColor), it, it + 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) } }; findViewById<TextView>(R.id.tv_message_content).text = SpannableString("Msg: ${binaryToText(message.message ?: "")}").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) }; findViewById<Button>(R.id.btn_close).setOnClickListener { dismiss() }; show(); window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) } }
-    private fun setupRecyclerView() { messageAdapter = PublicMessageAdapter( onMessageClick = { message -> if (message.senderId == auth.currentUser?.uid) { Toast.makeText(context, "You cannot start a conversation with yourself.", Toast.LENGTH_SHORT).show() } else if (message.senderId in blockList) { Toast.makeText(context, "You cannot start a conversation with a blocked user.", Toast.LENGTH_SHORT).show() } else { val messageText = binaryToText(message.message ?: ""); findNavController().navigate(R.id.inboxFragment, bundleOf("navigateToConversation" to true, "senderId" to message.senderId, "originalMessageId" to message.messageId, "originalGalaxyName" to message.senderGalaxy, "quotedMessageContent" to messageText, "quotedMessageAuthor" to message.senderNickname)) } }, onDeleteClick = { message -> showDeleteMessageConfirmationDialog(message, null) }, onViewClick = { message -> showViewMessageDialog(message) } ); publicMessagesRecyclerView.layoutManager = LinearLayoutManager(context); publicMessagesRecyclerView.adapter = messageAdapter }
+    private fun setupRecyclerView() { 
+        messageAdapter = PublicMessageAdapter( 
+            onMessageClick = { message -> 
+                if (actionMode != null) {
+                    actionMode?.finish()
+                }
+                if (message.senderId == auth.currentUser?.uid) { 
+                    Toast.makeText(context, "You cannot start a conversation with yourself.", Toast.LENGTH_SHORT).show() 
+                } else if (message.senderId in blockList) { 
+                    Toast.makeText(context, "You cannot start a conversation with a blocked user.", Toast.LENGTH_SHORT).show() 
+                } else { 
+                    // Badge Logic: Intercept Message
+                    BadgeProgressManager.incrementInterceptedMessages()
+                    
+                    val messageText = binaryToText(message.message ?: ""); 
+                    findNavController().navigate(R.id.inboxFragment, bundleOf("navigateToConversation" to true, "senderId" to message.senderId, "originalMessageId" to message.messageId, "originalGalaxyName" to message.senderGalaxy, "quotedMessageContent" to messageText, "quotedMessageAuthor" to message.senderNickname)) 
+                } 
+            }, 
+            onDeleteClick = { message -> showDeleteMessageConfirmationDialog(message, null) }, 
+            onViewClick = { message -> 
+                if (actionMode != null) {
+                    actionMode?.finish()
+                }
+                showViewMessageDialog(message) 
+            },
+            onLongClick = { message ->
+                if (actionMode == null) {
+                    selectedMessage = message
+                    messageAdapter.setSelected(message.messageId)
+                    
+                    actionMode = view?.startActionMode(object : ActionMode.Callback {
+                        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            mode.menuInflater.inflate(R.menu.menu_inbox_selection, menu)
+                            mode.title = "Selected"
+                            
+                            val deleteItem = menu.findItem(R.id.action_delete_conversation)
+                            deleteItem?.icon?.let { icon ->
+                                val wrapped = DrawableCompat.wrap(icon)
+                                icon.mutate()
+                                DrawableCompat.setTint(
+                                    wrapped, 
+                                    ContextCompat.getColor(requireContext(), R.color.neon_cyan)
+                                )
+                                deleteItem.icon = wrapped
+                            }
+                            return true
+                        }
+                        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean { return false }
+                        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                            return when (item.itemId) {
+                                R.id.action_delete_conversation -> {
+                                    selectedMessage?.let { showDeleteMessageConfirmationDialog(it, null) }
+                                    mode.finish()
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+                        override fun onDestroyActionMode(mode: ActionMode) {
+                            actionMode = null
+                            selectedMessage = null
+                            messageAdapter.setSelected(null)
+                        }
+                    })
+                }
+            }
+        )
+        
+        // Detect clicks on empty space to close ActionMode
+        val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                if (actionMode != null) {
+                    val child = publicMessagesRecyclerView.findChildViewUnder(e.x, e.y)
+                    if (child == null) {
+                        actionMode?.finish()
+                        return true
+                    }
+                }
+                return false
+            }
+        })
+
+        publicMessagesRecyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                return gestureDetector.onTouchEvent(e)
+            }
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
+
+        publicMessagesRecyclerView.layoutManager = LinearLayoutManager(context)
+        publicMessagesRecyclerView.adapter = messageAdapter 
+    }
     override fun onDestroyView() { 
         super.onDestroyView() 
         handler.removeCallbacksAndMessages(null) 
@@ -596,6 +697,7 @@ class HomeFragment : Fragment() {
         merchantBalloonView = null
         balloonAnimators.values.forEach { it.cancel() }
         balloonAnimators.clear()
+        actionMode?.finish()
     }
 
 }

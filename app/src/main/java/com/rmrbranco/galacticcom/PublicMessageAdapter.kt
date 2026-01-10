@@ -18,8 +18,16 @@ import java.util.concurrent.TimeUnit
 class PublicMessageAdapter(
     private val onMessageClick: (PublicMessage) -> Unit,
     private val onDeleteClick: (PublicMessage) -> Unit,
-    private val onViewClick: (PublicMessage) -> Unit
+    private val onViewClick: (PublicMessage) -> Unit,
+    private val onLongClick: (PublicMessage) -> Unit // Added long click listener
 ) : ListAdapter<PublicMessage, PublicMessageAdapter.ViewHolder>(PublicMessageDiffCallback()) {
+
+    private var selectedMessageId: String? = null
+
+    fun setSelected(id: String?) {
+        selectedMessageId = id
+        notifyDataSetChanged()
+    }
 
     private fun textToBinary(text: String): String {
         return text.map { char ->
@@ -34,11 +42,9 @@ class PublicMessageAdapter(
         private val timestampTextView: TextView = view.findViewById(R.id.tv_public_message_timestamp)
         val countdownTextView: TextView = view.findViewById(R.id.tv_countdown)
         val replyButton: Button = view.findViewById(R.id.btn_reply)
-        val deleteButton: Button = view.findViewById(R.id.btn_delete_item)
-        val viewButton: Button = view.findViewById(R.id.btn_view_item)
         private val buttonContainer: LinearLayout = view.findViewById(R.id.button_container)
 
-        fun bind(message: PublicMessage) {
+        fun bind(message: PublicMessage, isSelected: Boolean) {
             if (message.catastropheType != null) {
                 catastropheWarningTextView.text = message.catastropheType
                 catastropheWarningTextView.visibility = View.VISIBLE
@@ -61,7 +67,6 @@ class PublicMessageAdapter(
                 contentToDisplay
             }
 
-            // Msg label is now in XML (tv_message_label), so we just set the content here
             messageContent.text = displayContent
 
             val whiteColor = ContextCompat.getColor(itemView.context, android.R.color.white)
@@ -70,8 +75,6 @@ class PublicMessageAdapter(
             val nickname = message.senderNickname ?: "Unknown"
             val galaxy = message.senderGalaxy ?: "Unknown"
 
-            // Format: by: [nickname] from [Galaxyname]
-            // "by:" and "from" are neon_cyan (default from XML), nickname and galaxy are white
             val senderText = "$senderPrefix$nickname$fromSeparator$galaxy"
             val senderSpannable = SpannableString(senderText)
 
@@ -97,27 +100,39 @@ class PublicMessageAdapter(
             if (message.senderId == FirebaseAuth.getInstance().currentUser?.uid) {
                 countdownTextView.visibility = View.GONE
                 buttonContainer.visibility = View.GONE
-                return
-            }
-
-            if (hasArrived) {
-                countdownTextView.visibility = View.INVISIBLE
+            } else if (hasArrived) {
+                countdownTextView.visibility = View.VISIBLE // Changed to VISIBLE
+                countdownTextView.text = "ARRIVED" // Set text
                 buttonContainer.visibility = View.VISIBLE
-                itemView.isClickable = true
             } else {
-                buttonContainer.visibility = View.INVISIBLE
+                buttonContainer.visibility = View.GONE
                 countdownTextView.visibility = View.VISIBLE
-                itemView.isClickable = false
 
                 val timeRemaining = message.arrivalTime - System.currentTimeMillis()
                 val hours = TimeUnit.MILLISECONDS.toHours(timeRemaining)
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(timeRemaining) % 60
                 countdownTextView.text = String.format("Arriving in: %02d:%02d", hours, minutes).uppercase()
             }
-
-            replyButton.setOnClickListener { onMessageClick(message) }
-            deleteButton.setOnClickListener { onDeleteClick(message) }
-            viewButton.setOnClickListener { onViewClick(message) }
+            
+            // Interaction logic
+            if (hasArrived) {
+                itemView.setOnClickListener { onViewClick(message) }
+                itemView.setOnLongClickListener { 
+                    onLongClick(message) 
+                    true 
+                }
+                replyButton.setOnClickListener { onMessageClick(message) }
+            } else {
+                itemView.setOnClickListener(null)
+                itemView.setOnLongClickListener(null)
+            }
+            
+            // Handle Selection Visuals
+            if (isSelected) {
+                itemView.setBackgroundResource(R.drawable.item_inbox_selected_background)
+            } else {
+                itemView.setBackgroundResource(R.drawable.item_neon_background)
+            }
         }
     }
 
@@ -128,7 +143,8 @@ class PublicMessageAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val item = getItem(position)
+        holder.bind(item, item.messageId == selectedMessageId)
     }
 }
 

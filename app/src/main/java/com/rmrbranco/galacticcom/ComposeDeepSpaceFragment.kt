@@ -8,7 +8,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.ActionMode
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +22,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -55,6 +61,9 @@ class ComposeDeepSpaceFragment : Fragment() {
     private lateinit var sentRef: DatabaseReference
     private var userListener: ValueEventListener? = null
     private var sentListener: ValueEventListener? = null
+
+    private var actionMode: ActionMode? = null
+    private var selectedMessage: SentMessage? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         auth = FirebaseAuth.getInstance()
@@ -282,7 +291,104 @@ class ComposeDeepSpaceFragment : Fragment() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupUI(view: View) { if (view !is EditText) { view.setOnTouchListener { v, event -> hideKeyboard(); false } }; if (view is ViewGroup) { for (i in 0 until view.childCount) { val innerView = view.getChildAt(i); setupUI(innerView) } } }
     private fun hideKeyboard() { val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager; imm.hideSoftInputFromWindow(view?.windowToken, 0) }
-    private fun setupRecyclerView() { sentAdapter = SentMessageAdapter { message -> showDeleteConfirmationDialog(message) }; sentMessagesRecyclerView.layoutManager = LinearLayoutManager(context); sentMessagesRecyclerView.adapter = sentAdapter }
+
+    private fun setupRecyclerView() { 
+        sentAdapter = SentMessageAdapter(
+            onItemClick = { message ->
+                if (actionMode != null) {
+                    actionMode?.finish()
+                }
+                showViewMessageDialog(message)
+            },
+            onItemLongClick = { message ->
+                if (actionMode == null) {
+                    selectedMessage = message
+                    sentAdapter.setSelected(message.messageId)
+                    actionMode = view?.startActionMode(object : ActionMode.Callback {
+                        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            mode.menuInflater.inflate(R.menu.menu_inbox_selection, menu)
+                            mode.title = "Selected"
+                            val deleteItem = menu.findItem(R.id.action_delete_conversation)
+                            deleteItem?.icon?.let { icon ->
+                                val wrapped = DrawableCompat.wrap(icon)
+                                icon.mutate()
+                                DrawableCompat.setTint(
+                                    wrapped, 
+                                    ContextCompat.getColor(requireContext(), R.color.neon_cyan)
+                                )
+                                deleteItem.icon = wrapped
+                            }
+                            return true
+                        }
+
+                        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            return false
+                        }
+
+                        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                             return when (item.itemId) {
+                                R.id.action_delete_conversation -> {
+                                    selectedMessage?.let { showDeleteConfirmationDialog(it) }
+                                    mode.finish()
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+
+                        override fun onDestroyActionMode(mode: ActionMode) {
+                            actionMode = null
+                            selectedMessage = null
+                            sentAdapter.setSelected(null)
+                        }
+                    })
+                }
+            }
+        )
+        sentMessagesRecyclerView.layoutManager = LinearLayoutManager(context)
+        sentMessagesRecyclerView.adapter = sentAdapter 
+
+        // Detect clicks on empty space to close ActionMode
+        val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                if (actionMode != null) {
+                    val child = sentMessagesRecyclerView.findChildViewUnder(e.x, e.y)
+                    if (child == null) {
+                        actionMode?.finish()
+                        return true
+                    }
+                }
+                return false
+            }
+        })
+
+        sentMessagesRecyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                return gestureDetector.onTouchEvent(e)
+            }
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
+    }
+
+    private fun showViewMessageDialog(sentMessage: SentMessage) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_view_sent_message)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val toGalaxyTextView: TextView = dialog.findViewById(R.id.tv_to_galaxy)
+        val messageContent: TextView = dialog.findViewById(R.id.tv_message_content)
+        val closeButton: Button = dialog.findViewById(R.id.btn_close)
+
+        // Populate the dialog views
+        toGalaxyTextView.text = "To: ${sentMessage.sentToGalaxy}"
+        messageContent.text = "Msg: ${sentMessage.content}"
+        
+        closeButton.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
     private fun toBinary(text: String): String { return text.map { char -> Integer.toBinaryString(char.code).padStart(8, '0') }.joinToString(" ") }
     private fun showDeleteConfirmationDialog(message: SentMessage) { val dialog = Dialog(requireContext()); dialog.setContentView(R.layout.dialog_custom); dialog.window?.setBackgroundDrawableResource(android.R.color.transparent); val titleTextView = dialog.findViewById<TextView>(R.id.dialog_title); val messageTextView = dialog.findViewById<TextView>(R.id.dialog_message); val negativeButton = dialog.findViewById<Button>(R.id.dialog_negative_button); val positiveButton = dialog.findViewById<Button>(R.id.dialog_positive_button); dialog.findViewById<View>(R.id.galaxy_stats_layout).visibility = View.GONE; dialog.findViewById<View>(R.id.dialog_subtitle).visibility = View.GONE; titleTextView.text = "Delete Transmission Log"; messageTextView.text = "Are you sure you want to delete this message from your log? This action cannot be undone."; negativeButton.text = "Cancel"; positiveButton.text = "Delete"; negativeButton.setOnClickListener { dialog.dismiss() }; positiveButton.setOnClickListener { deleteSentMessage(message); dialog.dismiss() }; dialog.show(); dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) }
     private fun deleteSentMessage(message: SentMessage) { val userSentMessagesRef = database.getReference("users").child(currentUserId).child("sent_messages"); userSentMessagesRef.child(message.messageId).removeValue().addOnSuccessListener { Toast.makeText(context, "Message deleted from log", Toast.LENGTH_SHORT).show() }.addOnFailureListener { Toast.makeText(context, "Failed to delete message from log", Toast.LENGTH_SHORT).show() }; val galaxyInboxKey = message.sentToGalaxy.replace(" ", "_"); val publicBroadcastsRef = database.getReference("public_broadcasts").child(galaxyInboxKey); publicBroadcastsRef.child(message.messageId).removeValue() }
@@ -291,5 +397,5 @@ class ComposeDeepSpaceFragment : Fragment() {
     private fun loadUserDataAndMessages() { startTitleLoadingAnimation(); userRef = database.getReference("users").child(currentUserId); userListener = object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { userNickname = snapshot.child("nickname").getValue(String::class.java); userGalaxy = snapshot.child("galaxy").getValue(String::class.java); userExperience = snapshot.child("experiencePoints").getValue(Long::class.java) ?: 0L } override fun onCancelled(error: DatabaseError) { if (isAdded) { Toast.makeText(context, "Failed to load user data.", Toast.LENGTH_SHORT).show() } } }; userRef.addValueEventListener(userListener!!); sentRef = userRef.child("sent_messages"); sentListener = object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { if (!isAdded) return; val sentMessages = snapshot.children.mapNotNull { it.getValue(SentMessage::class.java) }.reversed(); sentAdapter.submitList(sentMessages) { if (sentMessages.isNotEmpty()) { sentMessagesRecyclerView.scrollToPosition(0) } }; checkEmptyState(sentMessages) } override fun onCancelled(error: DatabaseError) { if (isAdded) { Toast.makeText(context, "Failed to load sent messages.", Toast.LENGTH_SHORT).show() }; checkEmptyState(emptyList()) } }; sentRef.orderByChild("timestamp").addValueEventListener(sentListener!!) }
     private fun checkEmptyState(list: List<Any>) { stopTitleLoadingAnimation(); if (list.isEmpty()) { emptySentTextView.visibility = View.VISIBLE; sentMessagesRecyclerView.visibility = View.GONE } else { emptySentTextView.visibility = View.GONE; sentMessagesRecyclerView.visibility = View.VISIBLE } }
     private fun saveMessageToUserHistory(messageId: String, content: String, targetGalaxy: String, catastropheType: String?, arrivalTime: Long) { val sentMessage = SentMessage(messageId, content, targetGalaxy, ServerValue.TIMESTAMP, catastropheType, arrivalTime); database.getReference("users").child(currentUserId).child("sent_messages").child(messageId).setValue(sentMessage) }
-    override fun onDestroyView() { super.onDestroyView(); userListener?.let { userRef.removeEventListener(it) }; sentListener?.let { sentRef.removeEventListener(it) }; mediaPlayer?.release(); mediaPlayer = null; titleLoadingHandler.removeCallbacksAndMessages(null) }
+    override fun onDestroyView() { super.onDestroyView(); userListener?.let { userRef.removeEventListener(it) }; sentListener?.let { sentRef.removeEventListener(it) }; mediaPlayer?.release(); mediaPlayer = null; titleLoadingHandler.removeCallbacksAndMessages(null); actionMode?.finish() }
 }

@@ -7,7 +7,6 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -23,19 +22,32 @@ data class SentMessage(
     val arrivalTime: Long? = null // Tempo de chegada da mensagem
 )
 
-class SentMessageAdapter(private val onDeleteClick: (SentMessage) -> Unit) : ListAdapter<SentMessage, SentMessageAdapter.ViewHolder>(SentMessageDiffCallback()) {
+class SentMessageAdapter(
+    private val onItemClick: (SentMessage) -> Unit,
+    private val onItemLongClick: (SentMessage) -> Unit
+) : ListAdapter<SentMessage, SentMessageAdapter.ViewHolder>(SentMessageDiffCallback()) {
 
-    class ViewHolder(view: View, val onDeleteClick: (SentMessage) -> Unit) : RecyclerView.ViewHolder(view) {
+    private var selectedMessageId: String? = null
+
+    fun setSelected(id: String?) {
+        selectedMessageId = id
+        notifyDataSetChanged()
+    }
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val contentTextView: TextView = view.findViewById(R.id.tv_sent_message_content)
         private val galaxyTextView: TextView = view.findViewById(R.id.tv_sent_to_galaxy)
         private val timestampTextView: TextView = view.findViewById(R.id.tv_sent_timestamp)
         private val arrivalStatusTextView: TextView = view.findViewById(R.id.tv_arrival_status)
         private val catastropheWarningTextView: TextView = view.findViewById(R.id.tv_catastrophe_warning) // Novo TextView
-        private val viewMessageButton: Button = view.findViewById(R.id.btn_view_sent_message)
-        private val deleteButton: Button = view.findViewById(R.id.btn_delete_sent_message)
         private var countDownTimer: CountDownTimer? = null // Para a contagem regressiva
 
-        fun bind(sentMessage: SentMessage) {
+        fun bind(
+            sentMessage: SentMessage,
+            isSelected: Boolean,
+            onItemClick: (SentMessage) -> Unit,
+            onItemLongClick: (SentMessage) -> Unit
+        ) {
             // Cancela qualquer contagem regressiva anterior
             countDownTimer?.cancel()
 
@@ -94,25 +106,18 @@ class SentMessageAdapter(private val onDeleteClick: (SentMessage) -> Unit) : Lis
                 arrivalStatusTextView.text = "ARRIVED"
             }
 
-            viewMessageButton.setOnClickListener {
-                val dialog = Dialog(itemView.context)
-                dialog.setContentView(R.layout.dialog_view_sent_message)
-                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-                val toGalaxyTextView: TextView = dialog.findViewById(R.id.tv_to_galaxy)
-                val messageContent: TextView = dialog.findViewById(R.id.tv_message_content)
-                val closeButton: Button = dialog.findViewById(R.id.btn_close)
-
-                // Populate the dialog views
-                toGalaxyTextView.text = "To: ${sentMessage.sentToGalaxy}"
-                messageContent.text = "Msg: ${sentMessage.content}"
-                
-                closeButton.setOnClickListener { dialog.dismiss() }
-                dialog.show()
-                dialog.window?.setLayout((itemView.context.resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+            // Handle Selection Visuals
+            if (isSelected) {
+                itemView.setBackgroundResource(R.drawable.item_inbox_selected_background)
+            } else {
+                itemView.setBackgroundResource(R.drawable.item_neon_background)
             }
 
-            deleteButton.setOnClickListener { onDeleteClick(sentMessage) }
+            itemView.setOnClickListener { onItemClick(sentMessage) }
+            itemView.setOnLongClickListener { 
+                onItemLongClick(sentMessage)
+                true
+            }
         }
 
         fun cancelCountdown() {
@@ -129,11 +134,12 @@ class SentMessageAdapter(private val onDeleteClick: (SentMessage) -> Unit) : Lis
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_sent_message, parent, false)
-        return ViewHolder(view, onDeleteClick)
+        return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val item = getItem(position)
+        holder.bind(item, item.messageId == selectedMessageId, onItemClick, onItemLongClick)
     }
     
     override fun onViewRecycled(holder: ViewHolder) {

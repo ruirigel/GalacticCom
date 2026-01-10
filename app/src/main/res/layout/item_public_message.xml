@@ -90,6 +90,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:gravity="end"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -97,31 +98,11 @@
         app:layout_constraintTop_toBottomOf="@id/tv_message_sender">
 
         <Button
-            android:id="@+id/btn_view_item"
-            style="@style/Widget.App.Button.View"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:text="@string/view_button" />
-
-        <Button
             android:id="@+id/btn_reply"
             style="@style/Widget.App.Button"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
             android:text="@string/intercept_button_text" />
-
-        <Button
-            android:id="@+id/btn_delete_item"
-            style="@style/Widget.App.Button.Destructive"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:text="@string/delete_button_text" />
 
     </LinearLayout>
 
