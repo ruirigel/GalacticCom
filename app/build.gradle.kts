@@ -1,4 +1,6 @@
 import java.io.ByteArrayOutputStream
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
@@ -36,6 +38,16 @@ fun getVersionName(): String {
     }
 }
 
+// Helper para ler local.properties
+fun getLocalProperty(key: String): String {
+    val properties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(FileInputStream(localPropertiesFile))
+    }
+    return properties.getProperty(key) ?: ""
+}
+
 android {
     namespace = "com.rmrbranco.galacticcom"
     compileSdk = 36
@@ -58,6 +70,13 @@ android {
         versionName = getVersionName()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
+
+        // Ler AdMob ID e injetar no Manifesto
+        val admobAppId = getLocalProperty("ADMOB_APP_ID")
+        // Fallback para ID de teste se não encontrar (segurança para builds CI/CD)
+        val finalAdmobId = if (admobAppId.isNotEmpty()) admobAppId else "ca-app-pub-3940256099942544~3347511713"
+        
+        manifestPlaceholders["admobAppId"] = finalAdmobId
     }
 
     buildTypes {
