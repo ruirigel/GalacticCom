@@ -2,7 +2,6 @@
 
 **Forget everything you know about social media. GalacticCom is not just an app; it's a shared universe in your pocket, where every user is an anonymous traveler exploring and communicating across the stars.**
 
-![GalacticCom](https://i.imgur.com/example.gif) <!-- Suggestion: Replace with a real GIF or screenshot of the app -->
 
 ---
 
@@ -56,6 +55,16 @@ You will have to be patient and adapt. Your ability to communicate despite the c
 
 ---
 
+## ⛏️ Harvesting the Stars
+
+Survival in space requires resources. Your ship is equipped with autonomous mining drones that operate while you explore.
+
+*   **Passive Extraction:** Your systems automatically mine valuable resources from your current planet—**Iron Ore, Gold Dust, Plasma Crystals, and Dark Matter**.
+*   **System Overheat:** Your equipment cannot run forever. After intense mining sessions, systems will overheat and require a cooldown period. Manage your energy wisely.
+*   **Trade for Survival:** These resources are not just for show. Accumulate them to trade with merchants for **Credits**, the currency of the void.
+
+---
+
 ## 🏴‍☠️ Encounters in the Void: Captain Harlock
 
 The universe is vast, but not empty. Keep your sensors active for rare encounters.
@@ -66,7 +75,7 @@ The universe is vast, but not empty. Keep your sensors active for rare encounter
     *   **Clandestine Cargo** to bypass communication limits.
     *   **Avatar Seeds** to reshape your identity.
     *   **The Lone Traveler's Emblem**, a prestigious badge of honor.
-*   **The Price of Experience:** The Captain does not deal in common currencies. He only accepts **Experience (XP)**. Will you spend your hard-earned experience on rare items, or save it to speed up your communications? The choice is yours.
+*   **The Price of Experience:** The Captain does not deal in common currencies. He only accepts **Credits** obtained from your mining operations. Will you sell your resources to upgrade your capabilities? The choice is yours.
 
 ---
 
@@ -80,8 +89,18 @@ You are not confined to your home system. GalacticCom is a game of exploration.
 
 ---
 
+## 🏅 A Legacy in the Stars
+
+GalacticCom is a long-term journey. Your actions echo through time, earning you badges of honor that tell your story.
+
+*   **Achievements of Legend:** From the **"Observer of Ages"** for years of service, to **"The Murano Glass Bottle"** for messages that travel far and wide.
+*   **Rare Feats:** Prove your worth by becoming an **"Admiral of the Ghost Fleet"** or a **"Dark Matter Miner"**.
+*   **A Ten-Year Odyssey:** This is not a sprint. Some badges require dedication over a decade, rewarding the true guardians of the cosmos.
+
+---
+
 ## Join the Fleet
 
-This is an open-source project born from a passion for science fiction. If your curiosity leads you to want to know the mechanics behind the universe, consult our [**Technical Manual**](./TECHNICAL_MANUAL.md).
+This is an open-source project born from a passion for science fiction. If your curiosity leads you to want to know the mechanics behind the universe, consult our [**Help**](./HELP.md) and [**Technical Manual**](./TECHNICAL_MANUAL.md).
 
 **Install GalacticCom, begin your journey, and leave your mark on the cosmos.**

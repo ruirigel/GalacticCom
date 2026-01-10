@@ -176,6 +176,7 @@ This feature introduces a dynamic NPC merchant into the game who buys and sells 
     *   **Profile Management:** Allows editing of nickname and bio.
     *   **Planetary Travel (`Find New System`):** The UI for this action is located in `SystemFragment`. The action is limited by `dailyPlanetaryTravelLimit` from `SettingsManager`, verified against the user's `actionLogs`. Upon travel, `planetTotalReserves` is reset to allow for new resource generation.
     *   **Account Deletion:** A secure, multi-step process that requires re-authentication, deletes all associated data from Storage and Realtime Database, and finally deletes the user from Firebase Authentication.
+    *   **Blocked Users Management:** A dialog (`dialog_blocked_users.xml`) that lists blocked users (`item_blocked_user.xml`) and allows unblocking them.
 *   **`UserProfileDialogFragment`**:
     *   **New:** The "Regenerate Avatar" button (visible on one's own profile) now checks the `monthlyAvatarChangeLimit` against `SettingsManager` and the user's `actionLogs`. If the limit is reached, it checks for `Avatar Seed` (`item_004`) in inventory to allow extra changes.
     *   **Emblem Display:** Checks for `emblems/lone_traveler` in the user's profile and displays a gold star icon next to the name if present.

@@ -8,18 +8,20 @@ Welcome to GalacticCom! This guide will help you get started and understand the 
 2.  [How do public messages work?](#how-do-public-messages-work)
 3.  [How can I start a private conversation?](#how-can-i-start-a-private-conversation)
 4.  [Are private conversations secure?](#are-private-conversations-secure)
-5.  [What happens when I delete a conversation?](#what-happens-when-i-delete-a-conversation)
-6.  [How does Resource Mining work?](#how-does-resource-mining-work)
-7.  [Are there limits on sending messages?](#are-there-limits-on-sending-messages)
-8.  [How do I travel to other galaxies or planets?](#how-do-i-travel-to-other-galaxies-or-planets)
-9.  [Are there limits on travel?](#are-there-limits-on-travel)
-10. [Who is the Pirate Merchant (Captain Harlock)?](#who-is-the-pirate-merchant-captain-silas)
-11. [What items does Captain Harlock sell?](#what-items-does-captain-silas-sell)
-12. [Can I sell things to the Pirate Merchant?](#can-i-sell-things-to-the-pirate-merchant)
-13. [How will I know when the Pirate Merchant arrives?](#how-will-i-know-when-the-pirate-merchant-arrives)
-14. [Can I change my avatar?](#can-i-change-my-avatar)
-15. [How can I change my profile or manage my account?](#how-can-i-change-my-profile-or-manage-my-account)
-16. [What are Badges and how do I earn them?](#what-are-badges-and-how-do-i-earn-them)
+5.  [How do I block a user?](#how-do-i-block-a-user)
+6.  [What happens when I delete a conversation?](#what-happens-when-i-delete-a-conversation)
+7.  [How does Resource Mining work?](#how-does-resource-mining-work)
+8.  [Are there limits on sending messages?](#are-there-limits-on-sending-messages)
+9.  [Why was my message corrupted or delayed?](#why-was-my-message-corrupted-or-delayed)
+10. [How do I travel to other galaxies or planets?](#how-do-i-travel-to-other-galaxies-or-planets)
+11. [Are there limits on travel?](#are-there-limits-on-travel)
+12. [Who is the Pirate Merchant (Captain Harlock)?](#who-is-the-pirate-merchant-captain-harlock)
+13. [What items does Captain Harlock sell?](#what-items-does-captain-harlock-sell)
+14. [Can I sell things to the Pirate Merchant?](#can-i-sell-things-to-the-pirate-merchant)
+15. [How will I know when the Pirate Merchant arrives?](#how-will-i-know-when-the-pirate-merchant-arrives)
+16. [Can I change my avatar?](#can-i-change-my-avatar)
+17. [How can I change my profile or manage my account?](#how-can-i-change-my-profile-or-manage-my-account)
+18. [What are Badges and how do I earn them?](#what-are-badges-and-how-do-i-earn-them)
 
 ---
 
@@ -54,6 +56,15 @@ Yes. Once both users have joined the chat, it becomes **end-to-end encrypted**. 
 
 ---
 
+### **How do I block a user?**
+
+If a traveler is bothering you, you can **block** them directly from the chat screen or their profile.
+
+*   **Effect:** You will no longer see their public broadcasts or receive private messages from them.
+*   **Manage:** You can view and unblock users in **Settings > Blocked Users**.
+
+---
+
 ### **What happens when I delete a conversation?**
 
 When you delete a private conversation from your Inbox, it is **deleted for both users**. This ensures that the connection is completely severed. The original public message that started the chat will then become visible to both of you again.
@@ -78,6 +89,16 @@ Yes, to ensure fair play and prevent spam, there are daily limits:
 *   **Private Messages:** You have a daily limit of 50 private messages. This limit resets every day.
 
 If you reach these limits, you can purchase items from the Pirate Store to continue communicating.
+
+---
+
+### **Why was my message corrupted or delayed?**
+
+Space is unpredictable. The **Cosmic Chaos** engine can affect your transmissions:
+*   **Solar Storms:** Can scramble parts of your text, changing characters randomly.
+*   **Gravitational Anomalies:** Can trap your message, significantly increasing its travel time.
+
+These events are random and part of the challenge of interstellar communication.
 
 ---
 
@@ -136,7 +157,7 @@ Yes, you can regenerate your avatar in your user profile. However, there is a mo
 
 ### **How can I change my profile or manage my account?**
 
-You can edit your nickname and bio in the Settings. You can also manage your account, including deleting it if you wish.
+You can edit your nickname and bio in the Settings. You can also manage your account, including **Blocked Users**, or deleting your account if you wish.
 
 ---
 
