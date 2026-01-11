@@ -103,8 +103,8 @@ class InboxFragment : Fragment() {
                 "quotedMessageContent" to arguments?.getString("quotedMessageContent"),
                 "quotedMessageAuthor" to arguments?.getString("quotedMessageAuthor")
             )
-            // Clear the arguments to prevent re-triggering
-            arguments?.clear()
+            // Clear the trigger argument to prevent re-triggering on back navigation
+            arguments?.remove("navigateToConversation")
             
             findNavController().navigate(R.id.action_inbox_to_conversation, bundle)
         }

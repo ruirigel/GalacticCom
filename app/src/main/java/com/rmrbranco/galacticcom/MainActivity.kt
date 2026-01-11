@@ -90,8 +90,7 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
         
-        // Link Bottom Navigation with Controller (Always needs to be done)
-        bottomNavView.setupWithNavController(navController)
+        // Moved setupWithNavController to after graph initialization to ensure proper linking
         setupDestinationListener() // Setup UI visibility logic
         setupLongPressNavigation()
 
@@ -120,6 +119,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        
+        // Link Bottom Navigation with Controller after graph is set
+        bottomNavView.setupWithNavController(navController)
 
         // --- BACKGROUND TASKS ---
         // These should run regardless of whether it's a fresh start or a restore,
