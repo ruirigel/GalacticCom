@@ -61,4 +61,7 @@ object SettingsManager {
     fun getDailyPlanetaryTravelLimit(): Long = getLong("dailyPlanetaryTravelLimit", 3)
     fun getWeeklyIntergalacticTravelLimit(): Long = getLong("weeklyIntergalacticTravelLimit", 1)
     fun getMonthlyAvatarChangeLimit(): Long = getLong("monthlyAvatarChangeLimit", 1)
+
+    // Mining Parameters
+    fun getMiningStressLimitHours(): Long = getLong("miningStressLimitHours", 4)
 }

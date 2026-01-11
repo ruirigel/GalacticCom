@@ -77,8 +77,10 @@ class SystemFragment : Fragment() {
     private var miningStatusLoadingRunnable: Runnable? = null
     private var currentMiningBaseText = ""
     
-    // Mining Limits
-    private val MAX_MINING_TIME_MS = 4 * 60 * 60 * 1000L // 4 hours
+    // Helper to fetch Mining Limit from Settings
+    private fun getMaxMiningTimeMs(): Long {
+        return SettingsManager.getMiningStressLimitHours() * 60 * 60 * 1000L
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -202,17 +204,14 @@ class SystemFragment : Fragment() {
         val elapsedMillis = max(0L, now - lastCollection)
         // Check OVERHEAT based on MiningStartTime
         val stressElapsed = now - inventory.miningStartTime
+        val maxMiningTime = getMaxMiningTimeMs()
         
-        // If system is already overheated (past 4 hours), we cap production at the moment it overheated.
-        // But for simplicity, we cap based on elapsed time if we assume continuous mining.
-        // Actually, 'elapsedMillis' is time since last collection. 
-        // If stressElapsed > MAX, it means we stopped producing at (miningStartTime + MAX).
-        
+        // If system is already overheated (past limit), we cap production at the moment it overheated.
         var effectiveMillis = elapsedMillis
         
-        if (stressElapsed > MAX_MINING_TIME_MS) {
+        if (stressElapsed > maxMiningTime) {
             // Calculate when it overheated
-            val overheatTime = inventory.miningStartTime + MAX_MINING_TIME_MS
+            val overheatTime = inventory.miningStartTime + maxMiningTime
             // If last collection was BEFORE overheat, we only produce until overheat time.
             if (lastCollection < overheatTime) {
                 effectiveMillis = overheatTime - lastCollection
@@ -269,7 +268,8 @@ class SystemFragment : Fragment() {
         // STRESS CALCULATION (Based on Mining Start Time)
         val miningStart = currentInventory?.miningStartTime ?: System.currentTimeMillis()
         val elapsedStress = System.currentTimeMillis() - miningStart
-        val stressPercentage = min(100.0, (elapsedStress.toDouble() / MAX_MINING_TIME_MS) * 100.0).toInt()
+        val maxMiningTime = getMaxMiningTimeMs()
+        val stressPercentage = min(100.0, (elapsedStress.toDouble() / maxMiningTime) * 100.0).toInt()
         val isOverheated = stressPercentage >= 100
         
         stressProgressBar.progress = stressPercentage

@@ -178,7 +178,8 @@ class HomeFragment : Fragment() {
 
     private fun updateViewVisibility() {
         if (isMessagesViewVisible) {
-            galaxyPreviewView.isGone = true
+            galaxyPreviewView.isVisible = true // Keep visible for background/logo
+            galaxyPreviewTitleTextView.isGone = true // Hide title
             messagesView.isVisible = true
             balloonViews.forEach { 
                 it.isGone = true
@@ -187,6 +188,7 @@ class HomeFragment : Fragment() {
             displayedBalloons.clear()
         } else {
             galaxyPreviewView.isVisible = true
+            galaxyPreviewTitleTextView.isVisible = true // Show title
             messagesView.isGone = true
             messageList.forEach { showBalloonNotification(it, withAnimation = false) }
             listenForMerchantStatus() // Re-check merchant status when switching to visual view
@@ -248,7 +250,7 @@ class HomeFragment : Fragment() {
     private fun showMessagesState(galaxyName: String?) {
         travelStatusTextView.isGone = true
         galaxyNameTextView.isVisible = true
-        galaxyPreviewTitleTextView.isVisible = true
+        galaxyPreviewTitleTextView.isVisible = !isMessagesViewVisible // Respect view mode
         if (galaxyName == null) {
             showErrorState("You are not in a galaxy. Travel to one to see broadcasts.")
             return

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_background">
@@ -10,6 +11,29 @@
         android:id="@+id/starry_sky_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <!-- Images from Travel Fragment (Moved to background layer) -->
+    <ImageView
+        android:id="@+id/iv_system_planet"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:alpha="0.8"
+        android:src="@drawable/planet"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_system_moon"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="-30dp"
+        android:alpha="0.8"
+        android:src="@drawable/moon"
+        app:layout_constraintEnd_toStartOf="@id/iv_system_planet"
+        app:layout_constraintTop_toTopOf="@id/iv_system_planet" />
 
     <!-- Título Principal -->
     <TextView
@@ -53,27 +77,6 @@
             <RelativeLayout
                 style="@style/Settings.SectionContainer"
                 android:background="@drawable/item_neon_background">
-
-                <!-- Images from Travel Fragment (Top Right) -->
-                <ImageView
-                    android:id="@+id/iv_system_planet"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentTop="true"
-                    android:src="@drawable/planet"
-                    android:alpha="0.8"/>
-
-                <ImageView
-                    android:id="@+id/iv_system_moon"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_toStartOf="@id/iv_system_planet"
-                    android:layout_alignTop="@id/iv_system_planet"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="-10dp"
-                    android:src="@drawable/moon"
-                    android:alpha="0.8"/>
 
                 <!-- Data Rows Container -->
                 <LinearLayout
