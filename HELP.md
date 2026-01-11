@@ -21,7 +21,8 @@ Welcome to GalacticCom! This guide will help you get started and understand the 
 15. [How will I know when the Pirate Merchant arrives?](#how-will-i-know-when-the-pirate-merchant-arrives)
 16. [Can I change my avatar?](#can-i-change-my-avatar)
 17. [How can I change my profile or manage my account?](#how-can-i-change-my-profile-or-manage-my-account)
-18. [What are Badges and how do I earn them?](#what-are-badges-and-how-do-i-earn-them)
+18. [How do I delete my account?](#how-do-i-delete-my-account)
+19. [What are Badges and how do I earn them?](#what-are-badges-and-how-do-i-earn-them)
 
 ---
 
@@ -158,6 +159,15 @@ Yes, you can regenerate your avatar in your user profile. However, there is a mo
 ### **How can I change my profile or manage my account?**
 
 You can edit your nickname and bio in the Settings. You can also manage your account, including **Blocked Users**, or deleting your account if you wish.
+
+---
+
+### **How do I delete my account?**
+
+If you wish to delete your account, you have two options:
+
+1.  **In-App Settings:** Go to **Settings > Delete Account** and follow the instructions to permanently remove your data.
+2.  **Request Form:** You can also request account deletion by filling out this form: [https://forms.gle/S8Rj2s5HnEg6wQkH7](https://forms.gle/S8Rj2s5HnEg6wQkH7)
 
 ---
 
