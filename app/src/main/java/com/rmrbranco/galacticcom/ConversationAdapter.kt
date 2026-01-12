@@ -16,7 +16,7 @@ class ConversationAdapter(
     private val scope: CoroutineScope,
     private val onPlayVoiceMessage: (ChatMessage) -> Unit,
     private val onSeek: (ChatMessage, Int) -> Unit,
-    private val onMessageClick: () -> Unit
+    private val onMessageClick: (DisplayMessage, View) -> Unit
 ) : ListAdapter<DisplayMessage, ConversationAdapter.MessageViewHolder>(MessageDiffCallback()) {
 
     val selectedItems = mutableSetOf<String>()
@@ -165,7 +165,7 @@ class ConversationAdapter(
                     if (selectedItems.isNotEmpty()) {
                         toggleSelection(position)
                     } else {
-                        onMessageClick()
+                        onMessageClick(getItem(position), messageBubble)
                     }
                 }
             }
@@ -309,7 +309,7 @@ class ConversationAdapter(
                     if (selectedItems.isNotEmpty()) {
                         toggleSelection(position)
                     } else {
-                        onMessageClick()
+                        onMessageClick(getItem(position), messageBubble)
                     }
                 }
             }

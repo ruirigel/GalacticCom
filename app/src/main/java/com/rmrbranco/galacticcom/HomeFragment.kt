@@ -560,26 +560,31 @@ class HomeFragment : Fragment() {
 
         messagesRef?.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val initialMessages = snapshot.children.mapNotNull { data ->
-                    data.getValue(PublicMessage::class.java)?.also { it.messageId = data.key }
-                }.filter { message ->
-                    val isHidden = message.messageId in hiddenIds
-                    val isChatting = message.senderId in convPartnerIds
-                    val isBlocked = message.senderId in blockList
-                    val isMe = message.senderId == currentUserId
+                lifecycleScope.launch(Dispatchers.Default) {
+                    val initialMessages = snapshot.children.mapNotNull { data ->
+                        data.getValue(PublicMessage::class.java)?.also { it.messageId = data.key }
+                    }.filter { message ->
+                        val isHidden = message.messageId in hiddenIds
+                        val isChatting = message.senderId in convPartnerIds
+                        val isBlocked = message.senderId in blockList
+                        val isMe = message.senderId == currentUserId
 
-                    if (isHidden && !isChatting) {
-                        if (message.messageId != null) {
-                             userRef?.child("hiddenPublicMessages")?.child(message.messageId!!)?.removeValue()
+                        if (isHidden && !isChatting) {
+                            if (message.messageId != null) {
+                                userRef?.child("hiddenPublicMessages")?.child(message.messageId!!)?.removeValue()
+                            }
+                            !isMe && !isBlocked
+                        } else {
+                            !isMe && !isHidden && !isChatting && !isBlocked
                         }
-                        !isMe && !isBlocked
-                    } else {
-                        !isMe && !isHidden && !isChatting && !isBlocked
+                    }.sortedByDescending { (it.timestamp as? Long) ?: 0L }
+
+                    withContext(Dispatchers.Main) {
+                        updateAdapterAndEmptyView(initialMessages)
+                        messageList.forEach { showBalloonNotification(it, withAnimation = false) }
+                        initialDataLoaded = true
                     }
                 }
-                updateAdapterAndEmptyView(initialMessages.sortedByDescending { (it.timestamp as? Long) ?: 0L })
-                messageList.forEach { showBalloonNotification(it, withAnimation = false) }
-                initialDataLoaded = true
             }
             override fun onCancelled(error: DatabaseError) { Log.e("HomeFragment", "Initial data load cancelled.", error.toException()); showErrorState("Could not load messages.") }
         })

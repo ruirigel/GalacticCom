@@ -26,6 +26,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -669,7 +670,7 @@ class ConversationFragment : Fragment() {
     private fun getConversationId(userId1: String, userId2: String): String { return if (userId1 < userId2) "${userId1}_${userId2}" else "${userId2}_${userId1}" }
     
     private fun setupRecyclerView() { 
-        conversationAdapter = ConversationAdapter(lifecycleScope, this::onPlayVoiceMessage, this::onSeek, this::hideKeyboard)
+        conversationAdapter = ConversationAdapter(lifecycleScope, this::onPlayVoiceMessage, this::onSeek, this::showMessageOptions)
         val layoutManager = LinearLayoutManager(context).apply { stackFromEnd = true }
         messagesRecyclerView.layoutManager = layoutManager
         messagesRecyclerView.adapter = conversationAdapter
@@ -991,7 +992,47 @@ class ConversationFragment : Fragment() {
     private fun initiateConversationAndSendInvitation(convId: String, recipientId: String) { val convRef = database.reference.child("conversations").child(convId); convRef.child("isPrivate").setValue(isPrivate); val userConvData = mapOf("lastSeenTimestamp" to System.currentTimeMillis()); database.reference.child("users").child(currentUserId).child("conversations").child(convId).setValue(userConvData); database.reference.child("invitations").child(recipientId).child(convId).setValue(true); hidePublicMessage() }
     private fun hidePublicMessage() { args.originalMessageId?.let { database.reference.child("users").child(currentUserId).child("hiddenPublicMessages").child(it).setValue(true) } }
     private val actionModeCallback = object : ActionMode.Callback { override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean { mode.menuInflater.inflate(R.menu.conversation_selection_menu, menu); return true } override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean { val selectedCount = conversationAdapter.getSelectedItemsCount(); val selectedMessages = conversationAdapter.getSelectedMessages(); menu.findItem(R.id.action_copy).isVisible = selectedMessages.any { it.messageText.isNotEmpty() }; if (selectedCount == 1) { val message = selectedMessages.first(); val isMyMessage = message.senderId == currentUserId; menu.findItem(R.id.action_reply).isVisible = true; menu.findItem(R.id.action_edit).isVisible = isMyMessage && message.messageText != getString(R.string.message_deleted); menu.findItem(R.id.action_delete).isVisible = isMyMessage } else { menu.findItem(R.id.action_reply).isVisible = false; menu.findItem(R.id.action_edit).isVisible = false; menu.findItem(R.id.action_delete).isVisible = selectedMessages.all { it.senderId == currentUserId } }; return true } override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean { return when (item.itemId) { R.id.action_reply -> { startReplyingToMessage(); mode.finish(); true } R.id.action_edit -> { startEditingMessage(); mode.finish(); true } R.id.action_delete -> { showDeleteConfirmationDialog(); true } R.id.action_copy -> { copySelectedMessagesToClipboard(); mode.finish(); true } else -> false } } override fun onDestroyActionMode(mode: ActionMode) { actionMode = null; conversationAdapter.clearSelection() } }
-    private fun showDeleteConfirmationDialog() { val selectedMessages = conversationAdapter.getSelectedMessages(); if (selectedMessages.isEmpty()) { return };
+    
+    private fun showMessageOptions(displayMessage: DisplayMessage, anchorView: View) {
+        hideKeyboard()
+        val wrapper = ContextThemeWrapper(requireContext(), R.style.NeonPopupMenuContext)
+        val popup = PopupMenu(wrapper, anchorView)
+        popup.menuInflater.inflate(R.menu.conversation_selection_menu, popup.menu)
+        
+        val message = displayMessage.chatMessage
+        val isMyMessage = message.senderId == currentUserId
+        
+        popup.menu.findItem(R.id.action_reply)?.isVisible = true
+        popup.menu.findItem(R.id.action_copy)?.isVisible = message.messageText.isNotEmpty()
+        popup.menu.findItem(R.id.action_edit)?.isVisible = isMyMessage && message.messageText != getString(R.string.message_deleted)
+        popup.menu.findItem(R.id.action_delete)?.isVisible = isMyMessage
+        popup.menu.findItem(R.id.action_report)?.isVisible = !isMyMessage
+
+        // Force icons to show
+        try {
+            val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
+            fieldMPopup.isAccessible = true
+            val mPopup = fieldMPopup.get(popup)
+            mPopup.javaClass.getDeclaredMethod("setForceShowIcon", Boolean::class.javaPrimitiveType)
+                .invoke(mPopup, true)
+        } catch (e: Exception) {
+            // Log.e("ConversationFragment", "Error forcing icons in popup", e)
+        }
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_reply -> startReplyingToMessage(message)
+                R.id.action_edit -> startEditingMessage(message)
+                R.id.action_delete -> showDeleteConfirmationDialog(listOf(message))
+                R.id.action_copy -> copySelectedMessagesToClipboard(listOf(message))
+                R.id.action_report -> navigateToUserProfile()
+            }
+            true
+        }
+        popup.show()
+    }
+    
+    private fun showDeleteConfirmationDialog(messages: List<ChatMessage>? = null) { val selectedMessages = messages ?: conversationAdapter.getSelectedMessages(); if (selectedMessages.isEmpty()) { return };
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom, null)
         val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
 
@@ -1011,8 +1052,7 @@ class ConversationFragment : Fragment() {
         negativeButton.text = "Cancel"
 
         positiveButton.setOnClickListener {
-            softDeleteSelectedMessages()
-            actionMode?.finish()
+            softDeleteSelectedMessages(selectedMessages)
             dialog.dismiss()
         }
 
@@ -1022,16 +1062,15 @@ class ConversationFragment : Fragment() {
 
         dialog.show()
     }
-    private fun copySelectedMessagesToClipboard() { val textToCopy = conversationAdapter.getSelectedMessages().sortedBy { it.timestamp as? Long ?: 0 }.mapNotNull { it.messageText }.joinToString(separator = "\n"); if (textToCopy.isNotEmpty()) { val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager; val clip = ClipData.newPlainText("Copied Messages", textToCopy); clipboard?.setPrimaryClip(clip); Toast.makeText(context, "Messages copied", Toast.LENGTH_SHORT).show() } }
-    private fun startReplyingToMessage() { val selected = conversationAdapter.getSelectedMessages().firstOrNull() ?: return; messageToReply = selected; quotedMessageContainer.visibility = View.VISIBLE; quotedAuthorTextView.text = if (selected.senderId == currentUserId) currentUserNickname else recipientNickname; when { selected.voiceMessageUrl != null -> { quotedMessageTextView.visibility = View.GONE; quotedGifImageView.visibility = View.GONE; quotedVoiceMessageContainer.visibility = View.VISIBLE; quotedVoiceDurationTextView.text = TimeUtils.formatDuration(selected.voiceMessageDuration ?: 0) } selected.gifUrl != null -> { quotedMessageTextView.text = "GIF"; quotedMessageTextView.visibility = View.VISIBLE; quotedVoiceMessageContainer.visibility = View.GONE; quotedGifImageView.visibility = View.VISIBLE; Glide.with(this).load(selected.gifUrl).into(quotedGifImageView) } else -> { val decryptedQuotedText = if (isPrivate && selected.quotedMessageText != null) { sharedSecretKey?.let { CryptoManager.decrypt(selected.quotedMessageText!!, it)}} else { selected.quotedMessageText }; quotedMessageTextView.text = decryptedQuotedText ?: selected.messageText; quotedMessageTextView.visibility = View.VISIBLE; quotedVoiceMessageContainer.visibility = View.GONE; quotedGifImageView.visibility = View.GONE } }; replyEditText.requestFocus() }
+    private fun copySelectedMessagesToClipboard(messages: List<ChatMessage>? = null) { val targetMessages = messages ?: conversationAdapter.getSelectedMessages(); val textToCopy = targetMessages.sortedBy { it.timestamp as? Long ?: 0 }.mapNotNull { it.messageText }.joinToString(separator = "\n"); if (textToCopy.isNotEmpty()) { val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager; val clip = ClipData.newPlainText("Copied Messages", textToCopy); clipboard?.setPrimaryClip(clip); Toast.makeText(context, "Messages copied", Toast.LENGTH_SHORT).show() } }
+    private fun startReplyingToMessage(message: ChatMessage? = null) { val selected = message ?: conversationAdapter.getSelectedMessages().firstOrNull() ?: return; messageToReply = selected; quotedMessageContainer.visibility = View.VISIBLE; quotedAuthorTextView.text = if (selected.senderId == currentUserId) currentUserNickname else recipientNickname; when { selected.voiceMessageUrl != null -> { quotedMessageTextView.visibility = View.GONE; quotedGifImageView.visibility = View.GONE; quotedVoiceMessageContainer.visibility = View.VISIBLE; quotedVoiceDurationTextView.text = TimeUtils.formatDuration(selected.voiceMessageDuration ?: 0) } selected.gifUrl != null -> { quotedMessageTextView.text = "GIF"; quotedMessageTextView.visibility = View.VISIBLE; quotedVoiceMessageContainer.visibility = View.GONE; quotedGifImageView.visibility = View.VISIBLE; Glide.with(this).load(selected.gifUrl).into(quotedGifImageView) } else -> { val decryptedQuotedText = if (isPrivate && selected.quotedMessageText != null) { sharedSecretKey?.let { CryptoManager.decrypt(selected.quotedMessageText!!, it)}} else { selected.quotedMessageText }; quotedMessageTextView.text = decryptedQuotedText ?: selected.messageText; quotedMessageTextView.visibility = View.VISIBLE; quotedVoiceMessageContainer.visibility = View.GONE; quotedGifImageView.visibility = View.GONE } }; replyEditText.requestFocus() }
     private fun cancelReply() { messageToReply = null; quotedMessageContainer.visibility = View.GONE }
-    private fun startEditingMessage() { val selected = conversationAdapter.getSelectedMessages().firstOrNull() ?: return; messageToEdit = selected; val decryptedText = if (isPrivate && selected.messageText.isNotEmpty()) { sharedSecretKey?.let { CryptoManager.decrypt(selected.messageText, it) } ?: selected.messageText } else { selected.messageText }; replyEditText.setText(decryptedText); replyEditText.requestFocus(); replyEditText.setSelection(replyEditText.text.length) }
-    private fun softDeleteSelectedMessages() {
+    private fun startEditingMessage(message: ChatMessage? = null) { val selected = message ?: conversationAdapter.getSelectedMessages().firstOrNull() ?: return; messageToEdit = selected; val decryptedText = if (isPrivate && selected.messageText.isNotEmpty()) { sharedSecretKey?.let { CryptoManager.decrypt(selected.messageText, it) } ?: selected.messageText } else { selected.messageText }; replyEditText.setText(decryptedText); replyEditText.requestFocus(); replyEditText.setSelection(replyEditText.text.length) }
+    private fun softDeleteSelectedMessages(messages: List<ChatMessage>? = null) {
         val deletedText = getString(R.string.message_deleted)
-        val messagesToDelete = conversationAdapter.getSelectedMessages()
+        val messagesToDelete = messages ?: conversationAdapter.getSelectedMessages()
         
-        // Finish action mode immediately to clear selection
-        actionMode?.finish()
+        if (messages == null) actionMode?.finish()
 
         messagesToDelete.forEach { message ->
             // Delete media from storage if applicable

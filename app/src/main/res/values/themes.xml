@@ -175,4 +175,30 @@
         <item name="android:textSize">20sp</item>
     </style>
 
+    <!-- Tema wrapper para o PopupMenu (Dropdown) -->
+    <style name="NeonPopupMenuContext" parent="Theme.GalacticCom">
+        <item name="popupMenuStyle">@style/NeonPopupMenu</item>
+        <item name="android:popupMenuStyle">@style/NeonPopupMenu</item>
+        
+        <!-- FORCE Text Colors to neon_cyan (which adapts: Cyan in Light, White in Dark) -->
+        <item name="android:textColor">@color/neon_cyan</item>
+        <item name="android:textColorPrimary">@color/neon_cyan</item>
+        <item name="android:textColorSecondary">@color/neon_cyan</item>
+        
+        <!-- FORCE Icon Colors -->
+        <item name="colorControlNormal">@color/neon_cyan</item>
+        <item name="android:colorControlNormal">@color/neon_cyan</item>
+        <item name="iconTint">@color/neon_cyan</item>
+    </style>
+
+    <style name="NeonPopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:itemTextAppearance">@style/NeonPopupMenu.TextAppearance</item>
+    </style>
+
+    <style name="NeonPopupMenu.TextAppearance" parent="TextAppearance.AppCompat.Widget.PopupMenu.Large">
+        <item name="android:textColor">@color/neon_cyan</item>
+        <item name="android:fontFamily">@font/orbitron</item>
+    </style>
+
 </resources>

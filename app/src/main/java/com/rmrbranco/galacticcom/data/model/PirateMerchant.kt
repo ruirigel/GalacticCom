@@ -11,9 +11,10 @@ data class PirateMerchant(
     @get:PropertyName("ship_name") @set:PropertyName("ship_name") var shipName: String = "",
     @get:PropertyName("avatar_seed") @set:PropertyName("avatar_seed") var avatarSeed: String = "",
     @get:PropertyName("current_galaxy") @set:PropertyName("current_galaxy") var currentGalaxy: String? = null,
+    @get:PropertyName("visible") @set:PropertyName("visible") var visible: Boolean = false,
     @get:PropertyName("visible_until") @set:PropertyName("visible_until") var visibleUntil: Long = 0,
     @get:PropertyName("inventory") @set:PropertyName("inventory") var inventory: Map<String, MerchantItem> = emptyMap()
 ) {
     // No-argument constructor required for Firebase deserialization
-    constructor() : this("", "", "", null, 0, emptyMap())
+    constructor() : this("", "", "", null, false, 0, emptyMap())
 }
