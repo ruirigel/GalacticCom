@@ -104,3 +104,4 @@ GalacticCom is a long-term journey. Your actions echo through time, earning you 
 This is an open-source project born from a passion for science fiction. If your curiosity leads you to want to know the mechanics behind the universe, consult our [**Help**](./HELP.md) and [**Technical Manual**](./TECHNICAL_MANUAL.md).
 
 **Install GalacticCom, begin your journey, and leave your mark on the cosmos.**
+There is currently a build of GalacticCom available on Google Play. https://play.google.com/store/apps/details?id=com.rmrbranco.galacticcom
