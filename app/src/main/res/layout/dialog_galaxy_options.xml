@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_neon"
+    android:padding="16dp">
+
+    <!-- Galaxy Name -->
+    <TextView
+        android:id="@+id/dialog_galaxy_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/neon_cyan"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="16dp"/>
+
+    <!-- Galaxy Details (Replicating Item Layout) -->
+    
+    <TextView
+        android:id="@+id/dialog_galaxy_inhabitants"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Inhabitants: 500" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_messages"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Messages: 12" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_morphology"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Morphology: Spiral" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_age"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Age: 10 B years" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_dimension"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Dimension: 220 kly" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_composition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Composition: Gas" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_habitable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Habitable Planets: 2" />
+
+    <TextView
+        android:id="@+id/dialog_galaxy_non_habitable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:text="Non-Habitable Planets: 8" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_travel"
+            style="@style/Widget.App.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/travel_button_text" />
+
+    </LinearLayout>
+
+</LinearLayout>

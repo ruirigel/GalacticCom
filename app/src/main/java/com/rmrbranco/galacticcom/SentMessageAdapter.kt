@@ -1,6 +1,5 @@
 package com.rmrbranco.galacticcom
 
-import android.app.Dialog
 import android.os.CountDownTimer
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -18,8 +17,8 @@ data class SentMessage(
     val content: String = "",
     val sentToGalaxy: String = "",
     val timestamp: Any? = null,
-    val catastropheType: String? = null, // Novo campo
-    val arrivalTime: Long? = null // Tempo de chegada da mensagem
+    val catastropheType: String? = null, 
+    val arrivalTime: Long? = null 
 )
 
 class SentMessageAdapter(
@@ -27,20 +26,35 @@ class SentMessageAdapter(
     private val onItemLongClick: (SentMessage) -> Unit
 ) : ListAdapter<SentMessage, SentMessageAdapter.ViewHolder>(SentMessageDiffCallback()) {
 
-    private var selectedMessageId: String? = null
+    private val selectedMessageIds = mutableSetOf<String>()
 
-    fun setSelected(id: String?) {
-        selectedMessageId = id
+    fun toggleSelection(id: String) {
+        if (selectedMessageIds.contains(id)) {
+            selectedMessageIds.remove(id)
+        } else {
+            selectedMessageIds.add(id)
+        }
         notifyDataSetChanged()
     }
+
+    fun clearSelection() {
+        selectedMessageIds.clear()
+        notifyDataSetChanged()
+    }
+
+    fun getSelectedCount(): Int = selectedMessageIds.size
+
+    fun getSelectedIds(): List<String> = selectedMessageIds.toList()
+
+    fun isSelected(id: String): Boolean = selectedMessageIds.contains(id)
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val contentTextView: TextView = view.findViewById(R.id.tv_sent_message_content)
         private val galaxyTextView: TextView = view.findViewById(R.id.tv_sent_to_galaxy)
         private val timestampTextView: TextView = view.findViewById(R.id.tv_sent_timestamp)
         private val arrivalStatusTextView: TextView = view.findViewById(R.id.tv_arrival_status)
-        private val catastropheWarningTextView: TextView = view.findViewById(R.id.tv_catastrophe_warning) // Novo TextView
-        private var countDownTimer: CountDownTimer? = null // Para a contagem regressiva
+        private val catastropheWarningTextView: TextView = view.findViewById(R.id.tv_catastrophe_warning) 
+        private var countDownTimer: CountDownTimer? = null 
 
         fun bind(
             sentMessage: SentMessage,
@@ -48,10 +62,8 @@ class SentMessageAdapter(
             onItemClick: (SentMessage) -> Unit,
             onItemLongClick: (SentMessage) -> Unit
         ) {
-            // Cancela qualquer contagem regressiva anterior
             countDownTimer?.cancel()
 
-            // Exibe o aviso de catástrofe se existir
             if (sentMessage.catastropheType != null) {
                 catastropheWarningTextView.text = sentMessage.catastropheType
                 catastropheWarningTextView.visibility = View.VISIBLE
@@ -60,7 +72,8 @@ class SentMessageAdapter(
             }
 
             val binaryContent = toBinary(sentMessage.content)
-            val maxLength = 35
+            // Limit to 15 chars as requested
+            val maxLength = 15
             contentTextView.text = if (binaryContent.length > maxLength) {
                 binaryContent.take(maxLength) + "..."
             } else {
@@ -71,7 +84,6 @@ class SentMessageAdapter(
             val fullText = "$toPrefix${sentMessage.sentToGalaxy}"
             val spannable = SpannableString(fullText)
             
-            // Base color is neon_cyan from XML. We only need to color the Galaxy Name white.
             val whiteColor = ContextCompat.getColor(itemView.context, android.R.color.white)
             spannable.setSpan(
                 ForegroundColorSpan(whiteColor), 
@@ -139,7 +151,7 @@ class SentMessageAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, item.messageId == selectedMessageId, onItemClick, onItemLongClick)
+        holder.bind(item, selectedMessageIds.contains(item.messageId), onItemClick, onItemLongClick)
     }
     
     override fun onViewRecycled(holder: ViewHolder) {

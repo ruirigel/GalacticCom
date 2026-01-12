@@ -105,7 +105,7 @@ class HomeFragment : Fragment() {
     private var isMessagesViewVisible = false
 
     private var actionMode: ActionMode? = null
-    private var selectedMessage: PublicMessage? = null
+    // removed selectedMessage as adapter handles state now
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -586,50 +586,146 @@ class HomeFragment : Fragment() {
     }
     private fun updateAdapterAndEmptyView(messages: List<PublicMessage>) { messageList.clear(); messageList.addAll(messages); messageAdapter.submitList(messageList.toList()); emptyHomeTextView.isGone = messageList.isNotEmpty(); publicMessagesRecyclerView.isVisible = messageList.isNotEmpty(); if(messageList.isEmpty()) { emptyHomeTextView.text = "Deep space is quiet...\nNo foreign transmissions detected." } }
     private fun binaryToText(binary: String): String { return try { binary.split(" ").joinToString("") { Integer.parseInt(it, 2).toChar().toString() } } catch (e: Exception) { binary } }
-    private fun showBalloonOptionsDialog(message: PublicMessage, balloon: View?) { 
+    
+    // REPLACED WITH BOTTOM SHEET
+    private fun showBalloonOptionsDialog(message: PublicMessage, balloon: View?) {
         // Badge Logic: Intercept Message
         BadgeProgressManager.incrementInterceptedMessages()
 
-        val dialog = Dialog(requireContext()); dialog.setContentView(R.layout.dialog_balloon_options); dialog.window?.setBackgroundDrawableResource(android.R.color.transparent); val catastropheWarningTextView = dialog.findViewById<TextView>(R.id.dialog_catastrophe_warning); val messageContent = dialog.findViewById<TextView>(R.id.dialog_message_content); val messageSender = dialog.findViewById<TextView>(R.id.dialog_message_sender); val timestamp = dialog.findViewById<TextView>(R.id.dialog_message_timestamp); val countdownTextView = dialog.findViewById<TextView>(R.id.dialog_countdown); val btnView = dialog.findViewById<Button>(R.id.btn_view); val btnInterceptReply = dialog.findViewById<Button>(R.id.btn_intercept_reply); val btnClose = dialog.findViewById<Button>(R.id.btn_close); val btnDelete = dialog.findViewById<Button>(R.id.btn_delete); catastropheWarningTextView.text = message.catastropheType; catastropheWarningTextView.isVisible = message.catastropheType != null; val neonCyanColor = ContextCompat.getColor(requireContext(), R.color.neon_cyan); val hasArrived = message.arrivalTime == 0L || System.currentTimeMillis() >= message.arrivalTime; val contentToDisplay = message.message ?: ""; val displayContent = contentToDisplay.take(35) + if (contentToDisplay.length > 35) "..." else ""; messageContent.text = SpannableString("Msg: $displayContent").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) }; messageSender.text = SpannableString("from: ${message.senderGalaxy} by ${message.senderNickname}").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 5, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE); indexOf(" by ").takeIf { it != -1 }?.let { setSpan(ForegroundColorSpan(neonCyanColor), it, it + 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) } }; (message.timestamp as? Long)?.let { timestamp.text = TimeUtils.getRelativeTimeSpanString(it) }; dialogCountdownHandler?.removeCallbacksAndMessages(null); if (!hasArrived) { btnView.isGone = true; btnInterceptReply.isGone = true; btnDelete.isGone = true; countdownTextView.isVisible = true; dialogCountdownHandler = Handler(Looper.getMainLooper()); dialogCountdownRunnable = object : Runnable { override fun run() { val remaining = message.arrivalTime - System.currentTimeMillis(); if (remaining > 0) { val hours = TimeUnit.MILLISECONDS.toHours(remaining); val minutes = TimeUnit.MILLISECONDS.toMinutes(remaining) % 60; countdownTextView.text = String.format("Arriving in: %02d:%02d", hours, minutes).uppercase(); dialogCountdownHandler?.postDelayed(this, 1000) } else { countdownTextView.isGone = true; btnView.isVisible = true; btnInterceptReply.isVisible = true; btnDelete.isVisible = true; val newContent = message.message ?: ""; messageContent.text = SpannableString("Msg: ${newContent.take(35) + if (newContent.length > 35) "..." else ""}").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) } } } }.also { dialogCountdownHandler?.post(it) } } else { countdownTextView.isGone = true; btnView.isVisible = true; btnInterceptReply.isVisible = true; btnDelete.isVisible = true }; dialog.setOnDismissListener { dialogCountdownHandler?.removeCallbacksAndMessages(null) }; btnView.setOnClickListener { showViewMessageDialog(message); dialog.dismiss() }; btnClose.setOnClickListener { dialog.dismiss() }; btnDelete.setOnClickListener { dialog.dismiss(); showDeleteMessageConfirmationDialog(message, balloon) }; btnInterceptReply.setOnClickListener { if (message.senderId in blockList) { Toast.makeText(context, "You cannot start a conversation with a blocked user.", Toast.LENGTH_SHORT).show(); return@setOnClickListener }; val messageText = binaryToText(message.message ?: ""); findNavController().navigate(R.id.inboxFragment, bundleOf("navigateToConversation" to true, "senderId" to message.senderId, "originalMessageId" to message.messageId, "originalGalaxyName" to message.senderGalaxy, "quotedMessageContent" to messageText, "quotedMessageAuthor" to message.senderNickname)); dialog.dismiss() }; dialog.show(); dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) }
+        val bottomSheet = BalloonOptionsBottomSheet.newInstance(message)
+        balloon?.let { bottomSheet.setBalloonViewReference(it) }
+
+        // REMOVED onDeleteClick here as delete from sheet is removed.
+        // If Delete was still here, it would point to single delete.
+
+        bottomSheet.onReplyClick = { msg ->
+            if (msg.senderId in blockList) {
+                Toast.makeText(context, "You cannot start a conversation with a blocked user.", Toast.LENGTH_SHORT).show()
+            } else {
+                val messageText = binaryToText(msg.message ?: "")
+                findNavController().navigate(
+                    R.id.action_home_to_inbox, 
+                    bundleOf(
+                        "navigateToConversation" to true, 
+                        "senderId" to msg.senderId, 
+                        "originalMessageId" to msg.messageId, 
+                        "originalGalaxyName" to msg.senderGalaxy, 
+                        "quotedMessageContent" to messageText, 
+                        "quotedMessageAuthor" to msg.senderNickname
+                    )
+                )
+            }
+        }
+
+        bottomSheet.show(parentFragmentManager, "BalloonOptionsBottomSheet")
+    }
+
     private fun showDeleteMessageConfirmationDialog(message: PublicMessage, balloon: View?) { Dialog(requireContext()).apply { setContentView(R.layout.dialog_custom); window?.setBackgroundDrawableResource(android.R.color.transparent); findViewById<TextView>(R.id.dialog_title).text = "Confirm Deletion"; findViewById<TextView>(R.id.dialog_message).text = "Are you sure you want to delete this transmission? It will be hidden from you permanently."; findViewById<Button>(R.id.dialog_negative_button).text = "CANCEL"; findViewById<Button>(R.id.dialog_positive_button).text = "DELETE"; findViewById<View>(R.id.dialog_subtitle).isGone = true; findViewById<View>(R.id.galaxy_stats_layout).isGone = true; findViewById<TextView>(R.id.dialog_message).gravity = Gravity.START; findViewById<TextView>(R.id.dialog_title).gravity = Gravity.START; findViewById<Button>(R.id.dialog_negative_button).setOnClickListener { dismiss(); balloon?.let { showBalloonOptionsDialog(message, it) } }; findViewById<Button>(R.id.dialog_positive_button).setOnClickListener { deleteMessage(message, balloon); dismiss() }; show(); window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) } }
-    private fun deleteMessage(message: PublicMessage, balloon: View?) { val messageId = message.messageId ?: return; val userId = auth.currentUser?.uid ?: return; if (messageList.removeAll { it.messageId == messageId }) { updateAdapterAndEmptyView(messageList.toList()) }; val balloonToHide = balloon ?: balloonViews.find { (it.tag as? PublicMessage)?.messageId == messageId }; balloonToHide?.let { hideBalloonWithAnimation(it, this::fillEmptyBalloons) }; userRef?.child("hiddenPublicMessages")?.child(messageId)?.setValue(true)?.addOnSuccessListener { Toast.makeText(context, "Transmission deleted.", Toast.LENGTH_SHORT).show() } }
+    
+    // Updated to support bulk delete internally or single delete
+    private fun deleteMessages(messageIds: List<String>) {
+        if (messageIds.isEmpty()) return
+        val userId = auth.currentUser?.uid ?: return
+        
+        // Optimistic remove from local list
+        val removed = messageList.removeAll { it.messageId in messageIds }
+        if (removed) {
+            updateAdapterAndEmptyView(messageList.toList())
+        }
+        
+        // Also hide any floating balloons corresponding to deleted messages
+        messageIds.forEach { id ->
+            val balloonToHide = balloonViews.find { (it.tag as? PublicMessage)?.messageId == id }
+            balloonToHide?.let { hideBalloonWithAnimation(it, this::fillEmptyBalloons) }
+            
+            // Database update
+            userRef?.child("hiddenPublicMessages")?.child(id)?.setValue(true)
+        }
+        
+        Toast.makeText(context, "${messageIds.size} Transmission(s) deleted.", Toast.LENGTH_SHORT).show()
+        actionMode?.finish()
+    }
+    
+    // Wrapper for single delete to maintain compatibility
+    private fun deleteMessage(message: PublicMessage, balloon: View?) { 
+        message.messageId?.let { deleteMessages(listOf(it)) }
+    }
+    
+    private fun showBulkDeleteConfirmationDialog(messageIds: List<String>) {
+        Dialog(requireContext()).apply { 
+            setContentView(R.layout.dialog_custom)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+            findViewById<TextView>(R.id.dialog_title).text = "Delete Selection"
+            findViewById<TextView>(R.id.dialog_message).text = "Are you sure you want to delete ${messageIds.size} transmission(s)?"
+            findViewById<Button>(R.id.dialog_negative_button).text = "CANCEL"
+            findViewById<Button>(R.id.dialog_positive_button).text = "DELETE"
+            findViewById<View>(R.id.dialog_subtitle).isGone = true
+            findViewById<View>(R.id.galaxy_stats_layout).isGone = true
+            findViewById<TextView>(R.id.dialog_message).gravity = Gravity.START; findViewById<TextView>(R.id.dialog_title).gravity = Gravity.START
+            
+            findViewById<Button>(R.id.dialog_negative_button).setOnClickListener { dismiss() }
+            findViewById<Button>(R.id.dialog_positive_button).setOnClickListener { 
+                deleteMessages(messageIds)
+                dismiss() 
+            }
+            show()
+            window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) 
+        }
+    }
+
     private fun fillEmptyBalloons() { messageList.firstOrNull { it.messageId !in displayedBalloons }?.let { showBalloonNotification(it, withAnimation = false) } }
     private fun showErrorState(message: String) { if (!isAdded) return; currentGalaxyName?.let { stopTitleLoadingAnimation(it) }; publicMessagesRecyclerView.isGone = true; travelStatusTextView.isGone = true; galaxyNameTextView.isGone = true; emptyHomeTextView.text = message; emptyHomeTextView.isVisible = true }
-    private fun showViewMessageDialog(message: PublicMessage) { Dialog(requireContext()).apply { setContentView(R.layout.dialog_view_message); window?.setBackgroundDrawableResource(android.R.color.transparent); val neonCyanColor = ContextCompat.getColor(context, R.color.neon_cyan); findViewById<TextView>(R.id.tv_dialog_sender).text = SpannableString("from: ${message.senderGalaxy} by ${message.senderNickname}").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 5, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE); indexOf(" by ").takeIf { it != -1 }?.let { setSpan(ForegroundColorSpan(neonCyanColor), it, it + 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) } }; findViewById<TextView>(R.id.tv_message_content).text = SpannableString("Msg: ${binaryToText(message.message ?: "")}").apply { setSpan(ForegroundColorSpan(neonCyanColor), 0, 4, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE) }; findViewById<Button>(R.id.btn_close).setOnClickListener { dismiss() }; show(); window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) } }
+    
+    // Toggle logic for Multi-Select
+    private fun toggleSelection(message: PublicMessage) {
+        message.messageId?.let { id ->
+            messageAdapter.toggleSelection(id)
+            val count = messageAdapter.getSelectedCount()
+            if (count == 0) {
+                actionMode?.finish()
+            } else {
+                actionMode?.title = "$count Selected"
+            }
+        }
+    }
+
     private fun setupRecyclerView() { 
         messageAdapter = PublicMessageAdapter( 
             onMessageClick = { message -> 
                 if (actionMode != null) {
-                    actionMode?.finish()
+                    toggleSelection(message)
+                } else {
+                    if (message.senderId == auth.currentUser?.uid) { 
+                        Toast.makeText(context, "You cannot start a conversation with yourself.", Toast.LENGTH_SHORT).show() 
+                    } else if (message.senderId in blockList) { 
+                        Toast.makeText(context, "You cannot start a conversation with a blocked user.", Toast.LENGTH_SHORT).show() 
+                    } else { 
+                        // Badge Logic: Intercept Message
+                        BadgeProgressManager.incrementInterceptedMessages()
+                        
+                        val messageText = binaryToText(message.message ?: ""); 
+                        findNavController().navigate(R.id.action_home_to_inbox, bundleOf("navigateToConversation" to true, "senderId" to message.senderId, "originalMessageId" to message.messageId, "originalGalaxyName" to message.senderGalaxy, "quotedMessageContent" to messageText, "quotedMessageAuthor" to message.senderNickname)) 
+                    }
                 }
-                if (message.senderId == auth.currentUser?.uid) { 
-                    Toast.makeText(context, "You cannot start a conversation with yourself.", Toast.LENGTH_SHORT).show() 
-                } else if (message.senderId in blockList) { 
-                    Toast.makeText(context, "You cannot start a conversation with a blocked user.", Toast.LENGTH_SHORT).show() 
-                } else { 
-                    // Badge Logic: Intercept Message
-                    BadgeProgressManager.incrementInterceptedMessages()
-                    
-                    val messageText = binaryToText(message.message ?: ""); 
-                    findNavController().navigate(R.id.inboxFragment, bundleOf("navigateToConversation" to true, "senderId" to message.senderId, "originalMessageId" to message.messageId, "originalGalaxyName" to message.senderGalaxy, "quotedMessageContent" to messageText, "quotedMessageAuthor" to message.senderNickname)) 
-                } 
             }, 
-            onDeleteClick = { message -> showDeleteMessageConfirmationDialog(message, null) }, 
+            onDeleteClick = { message -> 
+                // Fallback for single delete if ever needed directly from adapter, e.g. swipe
+                showDeleteMessageConfirmationDialog(message, null) 
+            }, 
             onViewClick = { message -> 
                 if (actionMode != null) {
-                    actionMode?.finish()
+                    toggleSelection(message)
+                } else {
+                    showBalloonOptionsDialog(message, null)
                 }
-                showViewMessageDialog(message) 
             },
             onLongClick = { message ->
                 if (actionMode == null) {
-                    selectedMessage = message
-                    messageAdapter.setSelected(message.messageId)
-                    
+                    // Start Action Mode
                     actionMode = view?.startActionMode(object : ActionMode.Callback {
                         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                             mode.menuInflater.inflate(R.menu.menu_inbox_selection, menu)
-                            mode.title = "Selected"
+                            mode.title = "1 Selected"
                             
                             val deleteItem = menu.findItem(R.id.action_delete_conversation)
                             deleteItem?.icon?.let { icon ->
@@ -647,8 +743,11 @@ class HomeFragment : Fragment() {
                         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
                             return when (item.itemId) {
                                 R.id.action_delete_conversation -> {
-                                    selectedMessage?.let { showDeleteMessageConfirmationDialog(it, null) }
-                                    mode.finish()
+                                    val selectedIds = messageAdapter.getSelectedIds()
+                                    if (selectedIds.isNotEmpty()) {
+                                        showBulkDeleteConfirmationDialog(selectedIds)
+                                    }
+                                    // Mode finishes inside delete or if cancelled manually
                                     true
                                 }
                                 else -> false
@@ -656,10 +755,14 @@ class HomeFragment : Fragment() {
                         }
                         override fun onDestroyActionMode(mode: ActionMode) {
                             actionMode = null
-                            selectedMessage = null
-                            messageAdapter.setSelected(null)
+                            messageAdapter.clearSelection()
                         }
                     })
+                    // Toggle the initial item
+                    toggleSelection(message)
+                } else {
+                    // Already in mode, just toggle
+                    toggleSelection(message)
                 }
             }
         )

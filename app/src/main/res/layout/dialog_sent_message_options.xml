@@ -11,12 +11,13 @@
         android:id="@+id/dialog_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Received Transmission"
+        android:text="Transmission Log"
         android:textColor="@color/neon_cyan"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="12dp" />
 
+    <!-- Catastrophe Warning -->
     <TextView
         android:id="@+id/dialog_catastrophe_warning"
         android:layout_width="match_parent"
@@ -26,105 +27,82 @@
         android:textStyle="bold"
         android:visibility="gone"
         android:layout_marginBottom="8dp"
-        tools:text="AVISO: SINAL INSTÁVEL DETETADO"
+        tools:text="STATUS: SIGNAL CORRUPTED"
         tools:visibility="visible"/>
 
-    <!-- Container for Subject (was Msg) and Timestamp -->
+    <!-- Content Line: Label + Subject (Truncated Binary) + Timestamp -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:baselineAligned="false">
+        android:gravity="top">
 
-        <!-- Subject Content (Takes available space) -->
         <TextView
-            android:id="@+id/dialog_message_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Subject:"
+            android:textColor="@color/neon_cyan"
+            android:textSize="16sp"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/dialog_subject_content"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textColor="@color/white"
+            android:textSize="14sp"
             android:layout_marginEnd="8dp"
-            tools:text="Subject: 0101010..." />
+            tools:text="0101010101..." />
 
-        <!-- Timestamp (Fixed width, aligned right) -->
         <TextView
             android:id="@+id/dialog_message_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="@color/white"
+            android:textColor="@android:color/white"
             tools:text="Yesterday" />
 
     </LinearLayout>
 
-    <!-- Container for Sender Info, Arrived Status AND Countdown -->
+    <!-- Footer Line: To Galaxy + Status -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginTop="4dp"
-        android:orientation="horizontal">
+        android:gravity="center_vertical">
 
-        <!-- Sender Info (Takes available space) -->
         <TextView
-            android:id="@+id/dialog_message_sender"
+            android:id="@+id/dialog_message_destination"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/white"
+            android:textColor="@color/neon_cyan"
+            android:textSize="16sp"
             android:layout_marginEnd="8dp"
-            tools:text="from: Andromeda by User123" />
+            tools:text="to: Andromeda" />
 
-        <!-- Arrived Status (Visible if arrived) -->
         <TextView
-            android:id="@+id/dialog_arrived_status"
+            android:id="@+id/dialog_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ARRIVED"
             android:textSize="12sp"
+            android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:textColor="@color/white"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <!-- Countdown Timer (Visible if arriving) -->
-        <TextView
-            android:id="@+id/dialog_countdown"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/orbitron"
-            android:textColor="?attr/colorPrimary"
-            android:textStyle="bold"
-            android:textSize="12sp"
-            android:visibility="gone"
-            tools:text="02:30"
-            tools:visibility="visible" />
+            tools:text="ARRIVING IN: 01:23" />
 
     </LinearLayout>
 
-    <!-- Full Message Content -->
+    <!-- Full Decrypted Message Content -->
     <TextView
-        android:id="@+id/dialog_full_message_content"
+        android:id="@+id/dialog_full_decrypted_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textColor="@color/white"
-        tools:text="Msg: This is the full message content..." />
-
-    <!-- Action Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btn_intercept_reply"
-            style="@style/Widget.App.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/intercept_button_text" />
-
-    </LinearLayout>
+        android:textSize="14sp"
+        android:lineSpacingExtra="4dp"
+        tools:text="Msg: Hello Galaxy, this is a test message..." />
 
 </LinearLayout>

@@ -51,6 +51,9 @@
         <action
             android:id="@+id/action_home_to_pirate_store"
             app:destination="@id/pirateStoreFragment" />
+        <action
+            android:id="@+id/action_home_to_inbox"
+            app:destination="@id/inboxFragment" />
     </fragment>
 
     <fragment

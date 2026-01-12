@@ -63,7 +63,7 @@ class ComposeDeepSpaceFragment : Fragment() {
     private var sentListener: ValueEventListener? = null
 
     private var actionMode: ActionMode? = null
-    private var selectedMessage: SentMessage? = null
+    private val sentMessageList = mutableListOf<SentMessage>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         auth = FirebaseAuth.getInstance()
@@ -286,28 +286,35 @@ class ComposeDeepSpaceFragment : Fragment() {
         })
     }
     
-    // The rest of the file (UI setup, RecyclerView, dialogs, etc.) remains unchanged.
-    // ...
     @SuppressLint("ClickableViewAccessibility")
     private fun setupUI(view: View) { if (view !is EditText) { view.setOnTouchListener { v, event -> hideKeyboard(); false } }; if (view is ViewGroup) { for (i in 0 until view.childCount) { val innerView = view.getChildAt(i); setupUI(innerView) } } }
     private fun hideKeyboard() { val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager; imm.hideSoftInputFromWindow(view?.windowToken, 0) }
+
+    private fun toggleSelection(message: SentMessage) {
+        sentAdapter.toggleSelection(message.messageId)
+        val count = sentAdapter.getSelectedCount()
+        if (count == 0) {
+            actionMode?.finish()
+        } else {
+            actionMode?.title = "$count Selected"
+        }
+    }
 
     private fun setupRecyclerView() { 
         sentAdapter = SentMessageAdapter(
             onItemClick = { message ->
                 if (actionMode != null) {
-                    actionMode?.finish()
+                    toggleSelection(message)
+                } else {
+                    showSentMessageOptions(message)
                 }
-                showViewMessageDialog(message)
             },
             onItemLongClick = { message ->
                 if (actionMode == null) {
-                    selectedMessage = message
-                    sentAdapter.setSelected(message.messageId)
                     actionMode = view?.startActionMode(object : ActionMode.Callback {
                         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                             mode.menuInflater.inflate(R.menu.menu_inbox_selection, menu)
-                            mode.title = "Selected"
+                            mode.title = "1 Selected"
                             val deleteItem = menu.findItem(R.id.action_delete_conversation)
                             deleteItem?.icon?.let { icon ->
                                 val wrapped = DrawableCompat.wrap(icon)
@@ -328,8 +335,10 @@ class ComposeDeepSpaceFragment : Fragment() {
                         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
                              return when (item.itemId) {
                                 R.id.action_delete_conversation -> {
-                                    selectedMessage?.let { showDeleteConfirmationDialog(it) }
-                                    mode.finish()
+                                    val selectedIds = sentAdapter.getSelectedIds()
+                                    if (selectedIds.isNotEmpty()) {
+                                        showBulkDeleteConfirmationDialog(selectedIds)
+                                    }
                                     true
                                 }
                                 else -> false
@@ -338,10 +347,12 @@ class ComposeDeepSpaceFragment : Fragment() {
 
                         override fun onDestroyActionMode(mode: ActionMode) {
                             actionMode = null
-                            selectedMessage = null
-                            sentAdapter.setSelected(null)
+                            sentAdapter.clearSelection()
                         }
                     })
+                    toggleSelection(message)
+                } else {
+                    toggleSelection(message)
                 }
             }
         )
@@ -371,30 +382,75 @@ class ComposeDeepSpaceFragment : Fragment() {
         })
     }
 
-    private fun showViewMessageDialog(sentMessage: SentMessage) {
+    private fun showSentMessageOptions(sentMessage: SentMessage) {
+        val bottomSheet = SentMessageOptionsBottomSheet.newInstance(sentMessage)
+        bottomSheet.show(parentFragmentManager, "SentMessageOptionsBottomSheet")
+    }
+
+    private fun toBinary(text: String): String { return text.map { char -> Integer.toBinaryString(char.code).padStart(8, '0') }.joinToString(" ") }
+    
+    private fun deleteSentMessages(messageIds: List<String>) {
+        if (messageIds.isEmpty()) return
+        val userId = auth.currentUser?.uid ?: return
+        
+        val userSentMessagesRef = database.getReference("users").child(userId).child("sent_messages")
+        
+        messageIds.forEach { id ->
+            userSentMessagesRef.child(id).removeValue()
+            // Note: We don't delete from public_broadcasts usually as others might have received it, 
+            // but the original code did attempt to delete from public_broadcasts.
+            // If we want to keep that logic, we need the Galaxy Name for each message ID.
+            // Since we only have IDs here, we'd need to look them up in the local list first.
+            
+            val message = sentMessageList.find { it.messageId == id }
+            if (message != null) {
+                val galaxyInboxKey = message.sentToGalaxy.replace(" ", "_")
+                val publicBroadcastsRef = database.getReference("public_broadcasts").child(galaxyInboxKey)
+                publicBroadcastsRef.child(id).removeValue()
+            }
+        }
+        
+        Toast.makeText(context, "${messageIds.size} message(s) deleted from log.", Toast.LENGTH_SHORT).show()
+        actionMode?.finish()
+    }
+
+    private fun showBulkDeleteConfirmationDialog(messageIds: List<String>) {
         val dialog = Dialog(requireContext())
-        dialog.setContentView(R.layout.dialog_view_sent_message)
+        dialog.setContentView(R.layout.dialog_custom)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val toGalaxyTextView: TextView = dialog.findViewById(R.id.tv_to_galaxy)
-        val messageContent: TextView = dialog.findViewById(R.id.tv_message_content)
-        val closeButton: Button = dialog.findViewById(R.id.btn_close)
-
-        // Populate the dialog views
-        toGalaxyTextView.text = "To: ${sentMessage.sentToGalaxy}"
-        messageContent.text = "Msg: ${sentMessage.content}"
+        val titleTextView = dialog.findViewById<TextView>(R.id.dialog_title)
+        val messageTextView = dialog.findViewById<TextView>(R.id.dialog_message)
+        val negativeButton = dialog.findViewById<Button>(R.id.dialog_negative_button)
+        val positiveButton = dialog.findViewById<Button>(R.id.dialog_positive_button)
         
-        closeButton.setOnClickListener { dialog.dismiss() }
+        dialog.findViewById<View>(R.id.galaxy_stats_layout).visibility = View.GONE
+        dialog.findViewById<View>(R.id.dialog_subtitle).visibility = View.GONE
+
+        titleTextView.text = "Delete Transmission Log"
+        messageTextView.text = "Are you sure you want to delete ${messageIds.size} message(s) from your log? This action cannot be undone."
+        negativeButton.text = "Cancel"
+        positiveButton.text = "Delete"
+
+        negativeButton.setOnClickListener { dialog.dismiss() }
+        positiveButton.setOnClickListener { 
+            deleteSentMessages(messageIds)
+            dialog.dismiss() 
+        }
+
         dialog.show()
         dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
-    private fun toBinary(text: String): String { return text.map { char -> Integer.toBinaryString(char.code).padStart(8, '0') }.joinToString(" ") }
-    private fun showDeleteConfirmationDialog(message: SentMessage) { val dialog = Dialog(requireContext()); dialog.setContentView(R.layout.dialog_custom); dialog.window?.setBackgroundDrawableResource(android.R.color.transparent); val titleTextView = dialog.findViewById<TextView>(R.id.dialog_title); val messageTextView = dialog.findViewById<TextView>(R.id.dialog_message); val negativeButton = dialog.findViewById<Button>(R.id.dialog_negative_button); val positiveButton = dialog.findViewById<Button>(R.id.dialog_positive_button); dialog.findViewById<View>(R.id.galaxy_stats_layout).visibility = View.GONE; dialog.findViewById<View>(R.id.dialog_subtitle).visibility = View.GONE; titleTextView.text = "Delete Transmission Log"; messageTextView.text = "Are you sure you want to delete this message from your log? This action cannot be undone."; negativeButton.text = "Cancel"; positiveButton.text = "Delete"; negativeButton.setOnClickListener { dialog.dismiss() }; positiveButton.setOnClickListener { deleteSentMessage(message); dialog.dismiss() }; dialog.show(); dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) }
-    private fun deleteSentMessage(message: SentMessage) { val userSentMessagesRef = database.getReference("users").child(currentUserId).child("sent_messages"); userSentMessagesRef.child(message.messageId).removeValue().addOnSuccessListener { Toast.makeText(context, "Message deleted from log", Toast.LENGTH_SHORT).show() }.addOnFailureListener { Toast.makeText(context, "Failed to delete message from log", Toast.LENGTH_SHORT).show() }; val galaxyInboxKey = message.sentToGalaxy.replace(" ", "_"); val publicBroadcastsRef = database.getReference("public_broadcasts").child(galaxyInboxKey); publicBroadcastsRef.child(message.messageId).removeValue() }
     private fun startTitleLoadingAnimation() { titleLoadingRunnable?.let { titleLoadingHandler.removeCallbacks(it) }; titleLoadingRunnable = object : Runnable { private var dotCount = 0; override fun run() { dotCount = (dotCount + 1) % 4; val dots = when (dotCount) { 1 -> "."; 2 -> ".."; 3 -> "..."; else -> "" }; sentMessagesTitle.text = "Transmit$dots"; titleLoadingHandler.postDelayed(this, 500) } }; titleLoadingHandler.post(titleLoadingRunnable!!) }
     private fun stopTitleLoadingAnimation() { titleLoadingHandler.removeCallbacksAndMessages(null); sentMessagesTitle.text = "Transmit" }
-    private fun loadUserDataAndMessages() { startTitleLoadingAnimation(); userRef = database.getReference("users").child(currentUserId); userListener = object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { userNickname = snapshot.child("nickname").getValue(String::class.java); userGalaxy = snapshot.child("galaxy").getValue(String::class.java); userExperience = snapshot.child("experiencePoints").getValue(Long::class.java) ?: 0L } override fun onCancelled(error: DatabaseError) { if (isAdded) { Toast.makeText(context, "Failed to load user data.", Toast.LENGTH_SHORT).show() } } }; userRef.addValueEventListener(userListener!!); sentRef = userRef.child("sent_messages"); sentListener = object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { if (!isAdded) return; val sentMessages = snapshot.children.mapNotNull { it.getValue(SentMessage::class.java) }.reversed(); sentAdapter.submitList(sentMessages) { if (sentMessages.isNotEmpty()) { sentMessagesRecyclerView.scrollToPosition(0) } }; checkEmptyState(sentMessages) } override fun onCancelled(error: DatabaseError) { if (isAdded) { Toast.makeText(context, "Failed to load sent messages.", Toast.LENGTH_SHORT).show() }; checkEmptyState(emptyList()) } }; sentRef.orderByChild("timestamp").addValueEventListener(sentListener!!) }
+    private fun loadUserDataAndMessages() { startTitleLoadingAnimation(); userRef = database.getReference("users").child(currentUserId); userListener = object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { userNickname = snapshot.child("nickname").getValue(String::class.java); userGalaxy = snapshot.child("galaxy").getValue(String::class.java); userExperience = snapshot.child("experiencePoints").getValue(Long::class.java) ?: 0L } override fun onCancelled(error: DatabaseError) { if (isAdded) { Toast.makeText(context, "Failed to load user data.", Toast.LENGTH_SHORT).show() } } }; userRef.addValueEventListener(userListener!!); sentRef = userRef.child("sent_messages"); sentListener = object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { if (!isAdded) return; val sentMessages = snapshot.children.mapNotNull { it.getValue(SentMessage::class.java) }.reversed(); 
+        
+        // Update local list reference for delete lookups
+        sentMessageList.clear()
+        sentMessageList.addAll(sentMessages)
+        
+        sentAdapter.submitList(sentMessages) { if (sentMessages.isNotEmpty()) { sentMessagesRecyclerView.scrollToPosition(0) } }; checkEmptyState(sentMessages) } override fun onCancelled(error: DatabaseError) { if (isAdded) { Toast.makeText(context, "Failed to load sent messages.", Toast.LENGTH_SHORT).show() }; checkEmptyState(emptyList()) } }; sentRef.orderByChild("timestamp").addValueEventListener(sentListener!!) }
     private fun checkEmptyState(list: List<Any>) { stopTitleLoadingAnimation(); if (list.isEmpty()) { emptySentTextView.visibility = View.VISIBLE; sentMessagesRecyclerView.visibility = View.GONE } else { emptySentTextView.visibility = View.GONE; sentMessagesRecyclerView.visibility = View.VISIBLE } }
     private fun saveMessageToUserHistory(messageId: String, content: String, targetGalaxy: String, catastropheType: String?, arrivalTime: Long) { val sentMessage = SentMessage(messageId, content, targetGalaxy, ServerValue.TIMESTAMP, catastropheType, arrivalTime); database.getReference("users").child(currentUserId).child("sent_messages").child(messageId).setValue(sentMessage) }
     override fun onDestroyView() { super.onDestroyView(); userListener?.let { userRef.removeEventListener(it) }; sentListener?.let { sentRef.removeEventListener(it) }; mediaPlayer?.release(); mediaPlayer = null; titleLoadingHandler.removeCallbacksAndMessages(null); actionMode?.finish() }

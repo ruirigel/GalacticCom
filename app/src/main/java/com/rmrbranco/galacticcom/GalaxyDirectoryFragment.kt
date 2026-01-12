@@ -202,9 +202,19 @@ class GalaxyDirectoryFragment : Fragment() {
             }
     }
     
-    // ... Other functions remain the same
     private fun toggleViews() { if (isMapView) { galaxiesRecyclerView.visibility = View.GONE; galaxyMapView.visibility = View.VISIBLE } else { galaxiesRecyclerView.visibility = View.VISIBLE; galaxyMapView.visibility = View.GONE } }
-    private fun setupRecyclerView() { galaxyAdapter = GalaxyAdapter(onTravelClick = { galaxy -> checkIntergalacticTravelLimitAndProceed(galaxy) }, onItemClick = { galaxy -> showGalaxyInfoDialog(galaxy) }); galaxiesRecyclerView.layoutManager = LinearLayoutManager(context); galaxiesRecyclerView.adapter = galaxyAdapter }
+    
+    private fun setupRecyclerView() { 
+        galaxyAdapter = GalaxyAdapter(
+            onTravelClick = { galaxy -> checkIntergalacticTravelLimitAndProceed(galaxy) }, 
+            onItemClick = { 
+                // Do nothing in List View as per user request (no sheet)
+            }
+        )
+        galaxiesRecyclerView.layoutManager = LinearLayoutManager(context)
+        galaxiesRecyclerView.adapter = galaxyAdapter 
+    }
+    
     private fun setupMapView() { galaxyMapView.onGalaxyClickListener = { galaxy -> showGalaxyInfoDialog(galaxy) } }
     private fun startTitleLoadingAnimation() { titleLoadingRunnable?.let { titleLoadingHandler.removeCallbacks(it) }; titleLoadingRunnable = object : Runnable { private var dotCount = 0; override fun run() { dotCount = (dotCount + 1) % 4; val dots = when (dotCount) { 1 -> "."; 2 -> ".."; 3 -> "..."; else -> "" }; 
                 if (isAdded) {
@@ -213,7 +223,16 @@ class GalaxyDirectoryFragment : Fragment() {
                 titleLoadingHandler.postDelayed(this, 500) 
             } }; titleLoadingHandler.post(titleLoadingRunnable!!) }
     private fun stopTitleLoadingAnimation() { titleLoadingRunnable?.let { titleLoadingHandler.removeCallbacks(it) }; titleLoadingRunnable = null; if (isAdded) titleTextView.text = getString(R.string.cosmos_title) }
-    private fun showGalaxyInfoDialog(galaxy: GalaxyInfo) { val dialog = Dialog(requireContext()); dialog.setContentView(R.layout.dialog_custom); dialog.window?.setBackgroundDrawableResource(android.R.color.transparent); val titleTextView = dialog.findViewById<TextView>(R.id.dialog_title); val subtitleTextView = dialog.findViewById<TextView>(R.id.dialog_subtitle); val messageTextView = dialog.findViewById<TextView>(R.id.dialog_message); val negativeButton = dialog.findViewById<MaterialButton>(R.id.dialog_negative_button); val positiveButton = dialog.findViewById<MaterialButton>(R.id.dialog_positive_button); val buttonsLayout = dialog.findViewById<LinearLayout>(R.id.dialog_buttons); val statsLayout = dialog.findViewById<LinearLayout>(R.id.galaxy_stats_layout); titleTextView.text = galaxy.name; messageTextView.gravity = Gravity.START; titleTextView.gravity = Gravity.START; fun setSpannableText(textView: TextView, label: String, value: String) { val spannable = SpannableString(label + value); val cyanColor = ContextCompat.getColor(textView.context, R.color.neon_cyan); spannable.setSpan(ForegroundColorSpan(cyanColor), 0, label.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); textView.text = spannable }; setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_count), getString(R.string.inhabitants_label), galaxy.inhabitants.toString()); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_message_count), getString(R.string.messages_label), galaxy.messageCount.toString()); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_morphology), getString(R.string.morphology_label), galaxy.morphology); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_age), getString(R.string.age_label), galaxy.age); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_dimension), getString(R.string.dimension_label), galaxy.dimension); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_composition), getString(R.string.composition_label), galaxy.composition); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_habitable_planets), getString(R.string.habitable_planets_label), galaxy.habitablePlanets.toString()); setSpannableText(dialog.findViewById(R.id.dialog_galaxy_item_non_habitable_planets), getString(R.string.non_habitable_planets_label), galaxy.nonHabitablePlanets.toString()); if (galaxy.isCurrentGalaxy) { subtitleTextView.text = getString(R.string.you_are_here); subtitleTextView.gravity = Gravity.CENTER; TextViewCompat.setTextAppearance(subtitleTextView, R.style.Widget_App_Button); subtitleTextView.isAllCaps = true; messageTextView.visibility = View.GONE; buttonsLayout.visibility = View.GONE } else { subtitleTextView.visibility = View.GONE; messageTextView.visibility = View.GONE; negativeButton.text = getString(R.string.close); positiveButton.text = getString(R.string.travel_to_this_galaxy); val textButtonStyle = com.google.android.material.R.style.Widget_MaterialComponents_Button_TextButton; negativeButton.setTextAppearance(textButtonStyle); positiveButton.setTextAppearance(textButtonStyle); negativeButton.setOnClickListener { dialog.dismiss() }; positiveButton.setOnClickListener { dialog.dismiss(); checkIntergalacticTravelLimitAndProceed(galaxy) } }; dialog.show(); dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT) }
+    
+    // REPLACED DIALOG WITH BOTTOM SHEET
+    private fun showGalaxyInfoDialog(galaxy: GalaxyInfo) {
+        val bottomSheet = GalaxyOptionsBottomSheet.newInstance(galaxy)
+        bottomSheet.onTravelClick = {
+            checkIntergalacticTravelLimitAndProceed(galaxy)
+        }
+        bottomSheet.show(parentFragmentManager, "GalaxyOptionsBottomSheet")
+    }
+    
     private fun listenForUserStatus() { userDataListener = userRef.addValueEventListener(object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { travelCompletionTimestamp = snapshot.child("travelCompletionTimestamp").getValue(Long::class.java); currentUserGalaxy = snapshot.child("galaxy").getValue(String::class.java); val lastTravel = snapshot.child("lastTravelTimestamp").getValue(Long::class.java); updateViews(lastTravel, currentUserGalaxy); handler.removeCallbacksAndMessages(null); val now = System.currentTimeMillis(); if (travelCompletionTimestamp != null && now < travelCompletionTimestamp!!) { val delay = travelCompletionTimestamp!! - now; handler.postDelayed({ updateViews(lastTravel, currentUserGalaxy) }, delay) } } override fun onCancelled(error: DatabaseError) { if (isAdded) Toast.makeText(context, getString(R.string.user_status_error), Toast.LENGTH_SHORT).show() } }) }
     
     // UPDATED FUNCTION: ROBUST SELF-HEALING GALAXY LOADING
