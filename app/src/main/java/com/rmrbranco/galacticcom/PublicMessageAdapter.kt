@@ -79,8 +79,8 @@ class PublicMessageAdapter(
             // Display content (encrypted binary)
             val contentToDisplay = message.message ?: ""
 
-            // Limit to 15 chars
-            val maxLength = 15
+            // Limit to 13 chars
+            val maxLength = 13
             val displayContent = if (contentToDisplay.length > maxLength) {
                 contentToDisplay.take(maxLength) + "..."
             } else {
