@@ -191,18 +191,16 @@ class ConversationAdapter(
             } else {
                 mediaLoadingIndicator.visibility = View.GONE
                 timestampText.visibility = View.VISIBLE
-                when {
-                    displayMessage.chatMessage.isEdited -> {
-                        messageStatusText.text = "Edited"
-                        messageStatusText.visibility = View.VISIBLE
-                    }
-                    displayMessage.chatMessage.isSeen -> {
-                        messageStatusText.text = "Seen"
-                        messageStatusText.visibility = View.VISIBLE
-                    }
-                    else -> {
-                        messageStatusText.visibility = View.GONE
-                    }
+                
+                val statusParts = mutableListOf<String>()
+                if (displayMessage.chatMessage.isSeen) statusParts.add("Seen")
+                if (displayMessage.chatMessage.isEdited) statusParts.add("Edited")
+                
+                if (statusParts.isNotEmpty()) {
+                    messageStatusText.text = statusParts.joinToString(" / ")
+                    messageStatusText.visibility = View.VISIBLE
+                } else {
+                    messageStatusText.visibility = View.GONE
                 }
             }
 

@@ -29,11 +29,4 @@
         android:title="@string/copy"
         app:iconTint="@color/neon_cyan"
         app:showAsAction="always" />
-
-    <item
-        android:id="@+id/action_report"
-        android:icon="@drawable/ic_block"
-        android:title="Report"
-        app:iconTint="@color/neon_cyan"
-        app:showAsAction="never" />
 </menu>

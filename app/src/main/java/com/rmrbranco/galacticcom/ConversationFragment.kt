@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -26,7 +27,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -365,8 +365,8 @@ class ConversationFragment : Fragment() {
         })
     }
     
-    private fun sendOrUpdateReply(currentCount: Int? = null, logsRef: DatabaseReference? = null) {
-        val replyText = replyEditText.text.toString().trim()
+    private fun sendOrUpdateReply(currentCount: Int? = null, logsRef: DatabaseReference? = null, customText: String? = null) {
+        val replyText = customText ?: replyEditText.text.toString().trim()
         if (replyText.isEmpty()) {
             resetSendingState()
             return
@@ -426,9 +426,17 @@ class ConversationFragment : Fragment() {
             } else {
                 ChatMessage(currentUserId, textToSend ?: "", ServerValue.TIMESTAMP)
             }
-
-            replyEditText.text.clear()
-            cancelReply()
+            
+            // Only clear edit text if we sent what was in it (not a custom text reaction)
+            if (customText == null) {
+                replyEditText.text.clear()
+                cancelReply()
+            } else {
+                // If it was a quick reaction, we should clear the 'messageToReply' state
+                // because we just used it.
+                messageToReply = null
+                // We do NOT clear the EditText or change the edit mode if the user was typing something else
+            }
 
             messageRef.setValue(chatMessage).addOnSuccessListener {
                 ExperienceUtils.incrementExperience(currentUserId)
@@ -995,41 +1003,105 @@ class ConversationFragment : Fragment() {
     
     private fun showMessageOptions(displayMessage: DisplayMessage, anchorView: View) {
         hideKeyboard()
-        val wrapper = ContextThemeWrapper(requireContext(), R.style.NeonPopupMenuContext)
-        val popup = PopupMenu(wrapper, anchorView)
-        popup.menuInflater.inflate(R.menu.conversation_selection_menu, popup.menu)
+        
+        // Inflate custom view
+        val inflater = LayoutInflater.from(requireContext())
+        val popupView = inflater.inflate(R.layout.popup_message_options, null)
+        
+        // Measure the popup view to get height for positioning calculations
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val popupHeight = popupView.measuredHeight
+        val popupWidth = popupView.measuredWidth
         
         val message = displayMessage.chatMessage
         val isMyMessage = message.senderId == currentUserId
         
-        popup.menu.findItem(R.id.action_reply)?.isVisible = true
-        popup.menu.findItem(R.id.action_copy)?.isVisible = message.messageText.isNotEmpty()
-        popup.menu.findItem(R.id.action_edit)?.isVisible = isMyMessage && message.messageText != getString(R.string.message_deleted)
-        popup.menu.findItem(R.id.action_delete)?.isVisible = isMyMessage
-        popup.menu.findItem(R.id.action_report)?.isVisible = !isMyMessage
+        // --- EMOJI REACTIONS ---
+        val emojiIds = listOf(R.id.emoji_1, R.id.emoji_2, R.id.emoji_3, R.id.emoji_4, R.id.emoji_5, R.id.emoji_6)
+        val popupWindow = PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
+        popupWindow.elevation = 10f
 
-        // Force icons to show
-        try {
-            val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
-            fieldMPopup.isAccessible = true
-            val mPopup = fieldMPopup.get(popup)
-            mPopup.javaClass.getDeclaredMethod("setForceShowIcon", Boolean::class.javaPrimitiveType)
-                .invoke(mPopup, true)
-        } catch (e: Exception) {
-            // Log.e("ConversationFragment", "Error forcing icons in popup", e)
-        }
-
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_reply -> startReplyingToMessage(message)
-                R.id.action_edit -> startEditingMessage(message)
-                R.id.action_delete -> showDeleteConfirmationDialog(listOf(message))
-                R.id.action_copy -> copySelectedMessagesToClipboard(listOf(message))
-                R.id.action_report -> navigateToUserProfile()
+        emojiIds.forEach { id ->
+            val emojiView = popupView.findViewById<TextView>(id)
+            emojiView.setOnClickListener {
+                val emoji = emojiView.text.toString()
+                messageToReply = message
+                sendOrUpdateReply(customText = emoji)
+                popupWindow.dismiss()
             }
-            true
         }
-        popup.show()
+        
+        // --- MENU ACTIONS ---
+        val actionReply = popupView.findViewById<TextView>(R.id.action_reply)
+        val actionCopy = popupView.findViewById<TextView>(R.id.action_copy)
+        val actionEdit = popupView.findViewById<TextView>(R.id.action_edit)
+        val actionDelete = popupView.findViewById<TextView>(R.id.action_delete)
+        val actionReport = popupView.findViewById<TextView>(R.id.action_report)
+
+        actionReply.setOnClickListener {
+            startReplyingToMessage(message)
+            popupWindow.dismiss()
+        }
+        
+        if (message.messageText.isNotEmpty()) {
+            actionCopy.setOnClickListener {
+                copySelectedMessagesToClipboard(listOf(message))
+                popupWindow.dismiss()
+            }
+        } else {
+            actionCopy.visibility = View.GONE
+        }
+        
+        if (isMyMessage && message.messageText != getString(R.string.message_deleted)) {
+            actionEdit.setOnClickListener {
+                startEditingMessage(message)
+                popupWindow.dismiss()
+            }
+        } else {
+            actionEdit.visibility = View.GONE
+        }
+        
+        if (isMyMessage) {
+            actionDelete.setOnClickListener {
+                showDeleteConfirmationDialog(listOf(message))
+                popupWindow.dismiss()
+            }
+        } else {
+            actionDelete.visibility = View.GONE
+        }
+        
+        if (!isMyMessage) {
+            actionReport.setOnClickListener {
+                navigateToUserProfile()
+                popupWindow.dismiss()
+            }
+        } else {
+            actionReport.visibility = View.GONE
+        }
+        
+        // --- SMART POSITIONING ---
+        val anchorLoc = IntArray(2)
+        anchorView.getLocationOnScreen(anchorLoc)
+        val anchorY = anchorLoc[1]
+        val screenHeight = resources.displayMetrics.heightPixels
+        
+        // Check if there is enough space below
+        val spaceBelow = screenHeight - (anchorY + anchorView.height)
+        val showAbove = spaceBelow < popupHeight
+        
+        if (showAbove) {
+            // Show above the anchor view
+            val xOff = 0
+            val yOff = -(anchorView.height + popupHeight) 
+            // We need to adjust overlap slightly so it doesn't float too far
+            popupWindow.showAsDropDown(anchorView, xOff, yOff)
+        } else {
+            // Show below
+            // Center the popup horizontally relative to the message bubble is hard with wrap_content
+            // but showAsDropDown aligns left by default.
+            // Let's just standard show below
+            popupWindow.showAsDropDown(anchorView, 0, 0)
+        }
     }
     
     private fun showDeleteConfirmationDialog(messages: List<ChatMessage>? = null) { val selectedMessages = messages ?: conversationAdapter.getSelectedMessages(); if (selectedMessages.isEmpty()) { return };
