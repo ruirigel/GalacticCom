@@ -42,6 +42,7 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.rmrbranco.galacticcom.data.managers.BadgeProgressManager
 import com.rmrbranco.galacticcom.data.managers.SettingsManager
+import com.rmrbranco.galacticcom.ui.ImageViewerDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -678,7 +679,7 @@ class ConversationFragment : Fragment() {
     private fun getConversationId(userId1: String, userId2: String): String { return if (userId1 < userId2) "${userId1}_${userId2}" else "${userId2}_${userId1}" }
     
     private fun setupRecyclerView() { 
-        conversationAdapter = ConversationAdapter(lifecycleScope, this::onPlayVoiceMessage, this::onSeek, this::showMessageOptions)
+        conversationAdapter = ConversationAdapter(lifecycleScope, this::onPlayVoiceMessage, this::onSeek, this::showMessageOptions, this::showImagePreview)
         val layoutManager = LinearLayoutManager(context).apply { stackFromEnd = true }
         messagesRecyclerView.layoutManager = layoutManager
         messagesRecyclerView.adapter = conversationAdapter
@@ -729,6 +730,11 @@ class ConversationFragment : Fragment() {
                 actionMode?.finish() 
             } 
         } 
+    }
+    
+    private fun showImagePreview(imageUrl: String) {
+        val viewer = ImageViewerDialogFragment.newInstance(imageUrl)
+        viewer.show(parentFragmentManager, "image_viewer")
     }
     
     private fun loadMoreMessages() { if (isLoadingMore || lastLoadedMessageKey == null) { loadingProgressBar.visibility = View.GONE; return }; isLoadingMore = true; loadingProgressBar.visibility = View.VISIBLE; val query = messagesRef?.orderByKey()?.endBefore(lastLoadedMessageKey)?.limitToLast(MESSAGES_PER_PAGE); query?.addListenerForSingleValueEvent(object : ValueEventListener { override fun onDataChange(snapshot: DataSnapshot) { if (!snapshot.hasChildren()) { lastLoadedMessageKey = null; loadingProgressBar.visibility = View.GONE; isLoadingMore = false; return }; lifecycleScope.launch { val olderMessages = snapshot.children.mapNotNull { data -> mapToDisplayMessage(data, true) }; val currentLayoutManager = messagesRecyclerView.layoutManager as LinearLayoutManager; val firstVisibleItemPosition = currentLayoutManager.findFirstVisibleItemPosition(); val firstView = currentLayoutManager.findViewByPosition(firstVisibleItemPosition); val topOffset = firstView?.top ?: 0; chatMessages.addAll(0, olderMessages); val newLastKey = snapshot.children.first().key; if (newLastKey == lastLoadedMessageKey) { lastLoadedMessageKey = null } else { lastLoadedMessageKey = newLastKey }; conversationAdapter.submitList(chatMessages.toList()) { val newItemsCount = olderMessages.size; currentLayoutManager.scrollToPositionWithOffset(firstVisibleItemPosition + newItemsCount, topOffset) }; loadingProgressBar.visibility = View.GONE; isLoadingMore = false } } override fun onCancelled(error: DatabaseError) { loadingProgressBar.visibility = View.GONE; isLoadingMore = false; Toast.makeText(context, "Failed to load older messages.", Toast.LENGTH_SHORT).show() } }) }

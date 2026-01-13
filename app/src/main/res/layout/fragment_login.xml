@@ -55,7 +55,7 @@
                 android:id="@+id/et_password_login"
                 android:hint="@string/password_hint"
                 android:background="@drawable/edit_text_neon_background"
-                android:inputType="textPassword|textCapSentences"
+                android:inputType="textPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
         </com.google.android.material.textfield.TextInputLayout>

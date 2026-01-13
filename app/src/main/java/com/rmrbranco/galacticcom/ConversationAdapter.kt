@@ -16,7 +16,8 @@ class ConversationAdapter(
     private val scope: CoroutineScope,
     private val onPlayVoiceMessage: (ChatMessage) -> Unit,
     private val onSeek: (ChatMessage, Int) -> Unit,
-    private val onMessageClick: (DisplayMessage, View) -> Unit
+    private val onMessageClick: (DisplayMessage, View) -> Unit,
+    private val onImageClick: (String) -> Unit
 ) : ListAdapter<DisplayMessage, ConversationAdapter.MessageViewHolder>(MessageDiffCallback()) {
 
     val selectedItems = mutableSetOf<String>()
@@ -211,6 +212,8 @@ class ConversationAdapter(
 
             val isPlaying = displayMessage.chatMessage.id == playingMessageId && isAudioPlaying
 
+            val imageUrl = displayMessage.chatMessage.imageUrl // Capture locally for smart cast
+
             if (displayMessage.chatMessage.voiceMessageUrl != null) {
                 voiceMessageContainer.visibility = View.VISIBLE
                 voiceMessageDuration.text = TimeUtils.formatDuration(displayMessage.chatMessage.voiceMessageDuration ?: 0)
@@ -228,9 +231,13 @@ class ConversationAdapter(
             } else if (displayMessage.chatMessage.gifUrl != null) {
                 gifImageView.visibility = View.VISIBLE
                 Glide.with(itemView.context).asGif().load(displayMessage.chatMessage.gifUrl).into(gifImageView)
-            } else if (displayMessage.chatMessage.imageUrl != null) {
+            } else if (imageUrl != null) {
                 chatImageView.visibility = View.VISIBLE
-                Glide.with(itemView.context).load(displayMessage.chatMessage.imageUrl).into(chatImageView)
+                Glide.with(itemView.context).load(imageUrl).into(chatImageView)
+                
+                chatImageView.setOnClickListener {
+                    onImageClick(imageUrl)
+                }
             } else {
                 messageText.visibility = View.VISIBLE
                 messageText.text = displayMessage.chatMessage.messageText
@@ -346,6 +353,8 @@ class ConversationAdapter(
 
             val isPlaying = displayMessage.chatMessage.id == playingMessageId && isAudioPlaying
 
+            val imageUrl = displayMessage.chatMessage.imageUrl // Capture locally for smart cast
+
             if (displayMessage.chatMessage.voiceMessageUrl != null) {
                 voiceMessageContainer.visibility = View.VISIBLE
                 voiceMessageDuration.text = TimeUtils.formatDuration(displayMessage.chatMessage.voiceMessageDuration ?: 0)
@@ -363,9 +372,13 @@ class ConversationAdapter(
             } else if (displayMessage.chatMessage.gifUrl != null) {
                 gifImageView.visibility = View.VISIBLE
                 Glide.with(itemView.context).asGif().load(displayMessage.chatMessage.gifUrl).into(gifImageView)
-            } else if (displayMessage.chatMessage.imageUrl != null) {
+            } else if (imageUrl != null) {
                 chatImageView.visibility = View.VISIBLE
-                Glide.with(itemView.context).load(displayMessage.chatMessage.imageUrl).into(chatImageView)
+                Glide.with(itemView.context).load(imageUrl).into(chatImageView)
+                
+                chatImageView.setOnClickListener {
+                    onImageClick(imageUrl)
+                }
             } else {
                 messageText.visibility = View.VISIBLE
                 messageText.text = displayMessage.chatMessage.messageText

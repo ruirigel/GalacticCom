@@ -8,7 +8,6 @@ import android.text.InputFilter
 import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -21,6 +20,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
@@ -77,41 +78,57 @@ class LoginFragment : Fragment() {
             val password = passwordEditText.text.toString().trim()
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(context, "Please enter your email and password.", Toast.LENGTH_SHORT).show()
+                safeToast("Please enter your email and password.")
                 return@setOnClickListener
             }
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(requireContext(), "Please enter a valid email address.", Toast.LENGTH_SHORT).show()
+                safeToast("Please enter a valid email address.")
                 return@setOnClickListener
             }
 
             progressBar.visibility = View.VISIBLE
+            loginButton.isEnabled = false
 
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
+                    if (!isAdded) return@addOnCompleteListener
+
                     if (task.isSuccessful) {
                         val user = auth.currentUser
                         user?.reload()?.addOnCompleteListener { reloadTask ->
+                            if (!isAdded) return@addOnCompleteListener
+                            
                             progressBar.visibility = View.GONE
+                            loginButton.isEnabled = true
+                            
                             if (reloadTask.isSuccessful) {
                                 val refreshedUser = auth.currentUser
                                 if (refreshedUser != null && refreshedUser.isEmailVerified) {
                                     updateIpAddressAndCountry()
                                     getAndStoreFcmToken()
                                 } else {
-                                    Toast.makeText(context, "Please verify your email address.", Toast.LENGTH_LONG).show()
+                                    safeToast("Please verify your email address.", Toast.LENGTH_LONG)
                                     resendVerificationTextView.visibility = View.VISIBLE
                                     auth.signOut()
                                 }
                             } else {
-                                Toast.makeText(context, "Failed to check email verification status. Please try again.", Toast.LENGTH_LONG).show()
+                                safeToast("Failed to check email verification status. Please try again.", Toast.LENGTH_LONG)
                                 auth.signOut()
                             }
                         }
                     } else {
                         progressBar.visibility = View.GONE
-                        Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        loginButton.isEnabled = true
+                        
+                        val exception = task.exception
+                        val errorMessage = when (exception) {
+                            is FirebaseAuthInvalidUserException -> "Account not found or disabled."
+                            is FirebaseAuthInvalidCredentialsException -> "Invalid email or password."
+                            else -> "Login failed: ${exception?.localizedMessage}"
+                        }
+                        safeToast(errorMessage, Toast.LENGTH_LONG)
+                        Log.e("LoginFragment", "Login error", exception)
                     }
                 }
         }
@@ -121,10 +138,11 @@ class LoginFragment : Fragment() {
             if (user != null) {
                 user.sendEmailVerification()
                     .addOnCompleteListener { sendTask ->
+                        if (!isAdded) return@addOnCompleteListener
                         if (sendTask.isSuccessful) {
-                            Toast.makeText(context, "Verification email sent to ${user.email}.", Toast.LENGTH_SHORT).show()
+                            safeToast("Verification email sent to ${user.email}.")
                         } else {
-                            Toast.makeText(context, "Failed to send verification email.", Toast.LENGTH_SHORT).show()
+                            safeToast("Failed to send verification email.")
                         }
                     }
             }
@@ -140,6 +158,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun showForgotPasswordDialog() {
+        if (!isAdded) return
         val dialogView = layoutInflater.inflate(R.layout.dialog_forgot_password, null)
 
         val emailEditText = dialogView.findViewById<EditText>(R.id.et_email_forgot_password)
@@ -158,7 +177,7 @@ class LoginFragment : Fragment() {
                 sendPasswordResetEmail(email)
                 dialog.dismiss()
             } else {
-                Toast.makeText(context, "Please enter a valid email.", Toast.LENGTH_SHORT).show()
+                safeToast("Please enter a valid email.")
             }
         }
 
@@ -172,12 +191,20 @@ class LoginFragment : Fragment() {
     private fun sendPasswordResetEmail(email: String) {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
+                if (!isAdded) return@addOnCompleteListener
                 if (task.isSuccessful) {
-                    Toast.makeText(context, "Password reset email sent.", Toast.LENGTH_SHORT).show()
+                    safeToast("Password reset email sent.")
                 } else {
-                    Toast.makeText(context, "Failed to send password reset email.", Toast.LENGTH_SHORT).show()
+                    safeToast("Failed to send password reset email.")
                 }
             }
+    }
+    
+    // Helper to prevent crashes when fragment is detached
+    private fun safeToast(message: String, length: Int = Toast.LENGTH_SHORT) {
+        context?.let {
+            Toast.makeText(it, message, length).show()
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -201,6 +228,8 @@ class LoginFragment : Fragment() {
 
     private fun getAndStoreFcmToken() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!isAdded) return@addOnCompleteListener
+            
             if (!task.isSuccessful) {
                 Log.w("LoginFragment", "Fetching FCM registration token failed", task.exception)
                 findNavController().navigate(R.id.action_login_to_home)
@@ -213,7 +242,9 @@ class LoginFragment : Fragment() {
             if (userId != null && token != null) {
                 database.reference.child("users").child(userId).child("fcmToken").setValue(token)
                     .addOnCompleteListener {
-                        findNavController().navigate(R.id.action_login_to_home)
+                        if (isAdded) {
+                            findNavController().navigate(R.id.action_login_to_home)
+                        }
                     }
             } else {
                 findNavController().navigate(R.id.action_login_to_home)
